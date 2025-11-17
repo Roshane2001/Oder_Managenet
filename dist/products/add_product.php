@@ -153,7 +153,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                     <div class="error-feedback" id="name-error"></div>
                                 </div>
 
-                                <div class="product-form-group">
+                                <!--<div class="product-form-group">
                                     <label for="status" class="form-label">
                                         <i class="fas fa-toggle-on"></i> Status<span class="required">*</span>
                                     </label>
@@ -162,6 +162,14 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <option value="inactive">Inactive</option>
                                     </select>
                                     <div class="error-feedback" id="status-error"></div>
+                                </div>-->
+                                <div class="product-form-group">
+                                    <label for="product_short_name" class="form-label">
+                                        <i class="fas fa-barcode"></i> Product Short Name<span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="product_short_name" name="product_short_name"
+                                        placeholder="Enter product short name" required maxlength="50">
+                                    <div class="error-feedback" id="product_short_name-error"></div>
                                 </div>
                             </div>
 
@@ -447,6 +455,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     showSuccess('name');
                 }
             });
+            //product_short_name
+            $('#product_short_name').on('blur', function() {
+                const validation = validateProductShortName($(this).val());
+                if (!validation.valid) {
+                    showError('product_short_name', validation.message);
+                } else {
+                    showSuccess('product_short_name');
+                }
+            });
             
             $('#lkr_price').on('blur', function() {
                 const validation = validatePrice($(this).val());
@@ -518,6 +535,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             }
             if (name.length > 255) {
                 return { valid: false, message: 'Product name is too long (maximum 255 characters)' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        // Validation for product_short_name
+        function validateProductShortName(product_short_name) {
+            if (product_short_name.trim() === '') {
+                return { valid: false, message: 'Product short name is required' };
+            }
+            if (product_short_name.trim().length < 2) {
+                return { valid: false, message: 'Product short name must be at least 2 characters long' };
+            }
+            if (product_short_name.length > 50) {
+                return { valid: false, message: 'Product short name is too long (maximum 255 characters)' };
             }
             return { valid: true, message: '' };
         }
@@ -622,6 +653,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             
             // Get all field values
             const name = $('#name').val();
+            const product_shor_name = $('#product_short_name').val();
             const price = $('#lkr_price').val();
             const productCode = $('#product_code').val();
             const description = $('#description').val();
@@ -629,6 +661,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             // Validate required fields
             const validations = [
                 { field: 'name', validator: validateName, value: name },
+                { field: 'product_short_name', validator: validateproductshortname, value: productshortname },
                 { field: 'lkr_price', validator: validatePrice, value: price },
                 { field: 'product_code', validator: validateProductCode, value: productCode },
                 { field: 'description', validator: validateDescription, value: description }

@@ -50,7 +50,8 @@ function sanitizeInput($input) {
 try {
     // Get and sanitize form data
     $name = sanitizeInput($_POST['name'] ?? '');
-    $status = sanitizeInput($_POST['status'] ?? '');
+    $product_short_name = sanitizeInput($_POST['product_short_name'] ?? '');
+    $status = 'active';  //active
     $lkr_price = sanitizeInput($_POST['lkr_price'] ?? '');
     $product_code = sanitizeInput($_POST['product_code'] ?? '');
     $description = sanitizeInput($_POST['description'] ?? '');
@@ -66,13 +67,22 @@ try {
     } elseif (strlen($name) > 255) {
         $validationErrors['name'] = 'Product name is too long (maximum 255 characters)';
     }
+
+    // Validate short name
+    if (empty($product_short_name)) {
+        $validationErrors['product_short_name'] = 'Product short name is required';
+    } elseif (strlen($product_short_name) < 2) {
+        $validationErrors['product_short_name'] = 'Product short name must be at least 2 characters long';
+    } elseif (strlen($product_short_name) > 255) {
+        $validationErrors['product_short_name'] = 'Product short name is too long (maximum 255 characters)';
+    }
     
     // Validate status
-    if (empty($status)) {
+    /*if (empty($status)) {
         $validationErrors['status'] = 'Status is required';
     } elseif (!in_array($status, ['active', 'inactive'])) {
         $validationErrors['status'] = 'Invalid status value';
-    }
+    }*/
     
     // Validate price
     if (empty($lkr_price)) {
@@ -131,7 +141,7 @@ try {
     }
     
     // Prepare insert query
-    $insertQuery = "INSERT INTO products (name, description, lkr_price, status, product_code) VALUES (?, ?, ?, ?, ?)";
+    $insertQuery = "INSERT INTO products (name, description, lkr_price, status, product_code, product_short_name) VALUES (?, ?, ?, ?, ?, ?)"; ///
     $insertStmt = $conn->prepare($insertQuery);
     
     if (!$insertStmt) {
@@ -139,7 +149,7 @@ try {
     }
     
     // Bind parameters (description is no longer nullable, product_code can be null but we already validated it's not empty)
-    $insertStmt->bind_param("ssdss", $name, $description, $lkr_price, $status, $product_code);
+    $insertStmt->bind_param("ssdss", $name, $description, $lkr_price, $status, $product_code, $product_short_name);
     
     // Execute the query
     if ($insertStmt->execute()) {
@@ -149,7 +159,7 @@ try {
         if (isset($_SESSION['user_id'])) {
             $user_id = $_SESSION['user_id'];
             $action_type = 'product_create';
-            $details = "New product created - Name: {$name}, Code: {$product_code}, Price: LKR {$lkr_price}, Status: {$status}";
+            $details = "New product created - Name: {$name}, Code: {$product_code}, Price: LKR {$lkr_price}, Status: {$status}, short name: {$product_short_name}";
             
             $logQuery = "INSERT INTO user_logs (user_id, action_type, inquiry_id, details) VALUES (?, ?, ?, ?)";
             $logStmt = $conn->prepare($logQuery);
