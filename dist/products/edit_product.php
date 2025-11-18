@@ -195,7 +195,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                     <div class="error-feedback" id="name-error"></div>
                                 </div>
 
-                                <div class="product-form-group">
+                                <!--<div class="product-form-group">
                                     <label for="status" class="form-label">
                                         <i class="fas fa-toggle-on"></i> Status<span class="required">*</span>
                                     </label>
@@ -204,7 +204,17 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <option value="inactive" <?php echo $product['status'] === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
                                     </select>
                                     <div class="error-feedback" id="status-error"></div>
+                                </div>-->
+                                <div class="product-form-group">
+                                    <label for="product_short_name" class="form-label">
+                                        <i class="fas fa-barcode"></i> Product Short Name<span class="required">*</span>
+                                    </label>
+                                    <input type="text" class="form-control" id="product_short_name" name="product_short_name"
+                                        placeholder="Enter product short name" required maxlength="50"
+                                        value="<?php echo htmlspecialchars($product['product_short_name']); ?>">
+                                    <div class="error-feedback" id="productshortname-error"></div>
                                 </div>
+
                             </div>
 
                             <!-- Second Row: Price and Product Code -->
@@ -283,6 +293,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Store original values for reset functionality
         const originalValues = {
             name: '<?php echo addslashes($product['name']); ?>',
+            product_short_name: '<?php echo addslashes($product['product_short_name']); ?>',
             status: '<?php echo $product['status']; ?>',
             lkr_price: '<?php echo number_format($product['lkr_price'], 2, '.', ''); ?>',
             product_code: '<?php echo addslashes($product['product_code']); ?>',
@@ -391,6 +402,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Update original values after successful update
         function updateOriginalValues() {
             originalValues.name = $('#name').val();
+            originalValues.productshortname = $('#product_short_name').val();
             originalValues.status = $('#status').val();
             originalValues.lkr_price = $('#lkr_price').val();
             originalValues.product_code = $('#product_code').val();
@@ -471,6 +483,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Form reset function - restore original values
         function resetForm() {
             $('#name').val(originalValues.name);
+            $('#product_short_name').val(originalValues.productshortname);
             $('#status').val(originalValues.status);
             $('#lkr_price').val(originalValues.lkr_price);
             $('#product_code').val(originalValues.product_code);
@@ -512,6 +525,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     showError('name', validation.message);
                 } else {
                     showSuccess('name');
+                }
+            });
+
+            $('#product_short_name').on('blur', function() {
+                const validation = validateName($(this).val());
+                if (!validation.valid) {
+                    showError('product_short_name', validation.message);
+                } else {
+                    showSuccess('product_short_name');
                 }
             });
             
@@ -585,6 +607,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             }
             if (name.length > 255) {
                 return { valid: false, message: 'Product name is too long (maximum 255 characters)' };
+            }
+            return { valid: true, message: '' };
+        }
+
+        // Validation for product_short_name
+        function validateproductshortname(productshortname) {
+            if (productshortname.trim() === '') {
+                return { valid: false, message: 'Product short name is required' };
+            }
+            if (productshortname.trim().length < 2) {
+                return { valid: false, message: 'Product short name must be at least 2 characters long' };
+            }
+            if (productshortname.length > 50) {
+                return { valid: false, message: 'Product short name is too long (maximum 255 characters)' };
             }
             return { valid: true, message: '' };
         }
@@ -689,6 +725,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             
             // Get all field values
             const name = $('#name').val();
+            const productshortname = $('#product_short_name').val();
             const price = $('#lkr_price').val();
             const productCode = $('#product_code').val();
             const description = $('#description').val();
@@ -696,6 +733,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             // Validate required fields
             const validations = [
                 { field: 'name', validator: validateName, value: name },
+                { field: 'product_short_name', validator: validateproductshortname, value: productshortname },
                 { field: 'lkr_price', validator: validatePrice, value: price },
                 { field: 'product_code', validator: validateProductCode, value: productCode },
                 { field: 'description', validator: validateDescription, value: description }

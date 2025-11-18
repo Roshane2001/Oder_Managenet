@@ -316,7 +316,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                         showErrorNotification(response.message || 'Failed to add product. Please try again.');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function(xhr, status, error) {  
                     hideLoading();
                     $submitBtn.prop('disabled', false).html(originalText);
                     
@@ -455,15 +455,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     showSuccess('name');
                 }
             });
-            //product_short_name
-            $('#product_short_name').on('blur', function() {
-                const validation = validateProductShortName($(this).val());
-                if (!validation.valid) {
-                    showError('product_short_name', validation.message);
-                } else {
-                    showSuccess('product_short_name');
-                }
-            });
+            
             
             $('#lkr_price').on('blur', function() {
                 const validation = validatePrice($(this).val());
@@ -540,7 +532,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         }
 
         // Validation for product_short_name
-        function validateProductShortName(product_short_name) {
+        function validateproductshortname(product_short_name) {
             if (product_short_name.trim() === '') {
                 return { valid: false, message: 'Product short name is required' };
             }
@@ -653,7 +645,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             
             // Get all field values
             const name = $('#name').val();
-            const product_shor_name = $('#product_short_name').val();
+            const productshortname = $('#product_short_name').val();
             const price = $('#lkr_price').val();
             const productCode = $('#product_code').val();
             const description = $('#description').val();

@@ -38,7 +38,7 @@ $offset = ($page - 1) * $limit;
 $countSql = "SELECT COUNT(*) as total FROM products";
 
 // Main query - Updated to include product_code
-$sql = "SELECT id, name, product_code, description, lkr_price, created_at, status FROM products";
+$sql = "SELECT id, name, product_code, description, lkr_price, created_at, product_short_name, status FROM products";
 
 // Build search conditions
 $searchConditions = [];
@@ -247,6 +247,7 @@ $result = $conn->query($sql);
                             <tr>
                                 <th>ID</th>
                                 <th>Product Name</th>
+                                <th>Product Short Name</th>
                                 <th>Product Code</th>
                                 <th>Description</th>
                                 <th>Price (LKR)</th>
@@ -269,6 +270,13 @@ $result = $conn->query($sql);
                                             </div>
                                         </td>
                                         
+                                        <!-- Product short Name -->
+                                        <td class="product-shortname">
+                                            <div class="product-info">
+                                                <h6 style="margin: 0; font-size: 14px; font-weight: 600;"><?php echo htmlspecialchars($row['product_short_name']); ?></h6>
+                                            </div>
+                                        </td>
+
                                         <!-- Product Code -->
                                         <td>
                                             <div class="product-code" style="font-family: monospace; font-size: 13px; color: #495057; background: #f8f9fa; padding: 4px 8px; border-radius: 4px; display: inline-block;">

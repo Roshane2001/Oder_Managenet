@@ -75,6 +75,7 @@ try {
     
     // Get and sanitize form data
     $name = sanitizeInput($_POST['name'] ?? '');
+    $productshortname = sanitizeInput($_POST['product_short_name'] ?? '');
     $status = sanitizeInput($_POST['status'] ?? '');
     $lkr_price = sanitizeInput($_POST['lkr_price'] ?? '');
     $product_code = sanitizeInput($_POST['product_code'] ?? '');
@@ -91,11 +92,20 @@ try {
     } elseif (strlen($name) > 255) {
         $errors['name'] = 'Product name is too long (maximum 255 characters)';
     }
+
+    // Validate short name
+    if (empty($productshortname)) {
+        $errors['product_short_name'] = 'Product short name is required';
+    } elseif (strlen($productshortname) < 2) {
+        $errors['product_short_name'] = 'Product short name must be at least 2 characters long';
+    } elseif (strlen($productshortname) > 255) {
+        $errors['product_short_name'] = 'Product short name is too long (maximum 255 characters)';
+    }
     
     // Validate status
-    if (empty($status) || !in_array($status, ['active', 'inactive'])) {
+    /*if (empty($status) || !in_array($status, ['active', 'inactive'])) {
         $errors['status'] = 'Please select a valid status';
-    }
+    }*/
     
     // Validate price
     if (empty($lkr_price) || !is_numeric($lkr_price)) {
@@ -152,7 +162,7 @@ try {
     }
     
     // Prepare update query
-    $updateQuery = "UPDATE products SET name = ?, description = ?, lkr_price = ?, status = ?, product_code = ? WHERE id = ?";
+    $updateQuery = "UPDATE products SET name = ?, description = ?, lkr_price = ?, status = ?, product_code = ?, product_short_name = ? WHERE id = ?";
     $updateStmt = $conn->prepare($updateQuery);
     
     if (!$updateStmt) {
@@ -160,7 +170,7 @@ try {
     }
     
     // Bind parameters (description is now always required, no NULL handling needed)
-    $updateStmt->bind_param("ssdssi", $name, $description, $lkr_price, $status, $product_code, $product_id);
+    $updateStmt->bind_param("sssdssi", $name, $productshortname, $description, $lkr_price, $status, $product_code, $product_id);
     
     // Execute the query
     if ($updateStmt->execute()) {
@@ -176,6 +186,9 @@ try {
                 $changes = [];
                 if ($originalProduct['name'] !== $name) {
                     $changes[] = "Name: '{$originalProduct['name']}' → '{$name}'";
+                }
+                if ($originalProduct['product_short_name'] !== $productshortname) {
+                    $changes[] = "Product Short Name: '{$originalProduct['product_short_name']}' → '{$productshortname}'";
                 }
                 if ($originalProduct['status'] !== $status) {
                     $changes[] = "Status: '{$originalProduct['status']}' → '{$status}'";

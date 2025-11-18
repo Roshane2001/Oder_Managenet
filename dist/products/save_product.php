@@ -50,7 +50,7 @@ function sanitizeInput($input) {
 try {
     // Get and sanitize form data
     $name = sanitizeInput($_POST['name'] ?? '');
-    $product_short_name = sanitizeInput($_POST['product_short_name'] ?? '');
+    $productshortname = sanitizeInput($_POST['product_short_name'] ?? '');
     $status = 'active';  //active
     $lkr_price = sanitizeInput($_POST['lkr_price'] ?? '');
     $product_code = sanitizeInput($_POST['product_code'] ?? '');
@@ -69,11 +69,11 @@ try {
     }
 
     // Validate short name
-    if (empty($product_short_name)) {
-        $validationErrors['product_short_name'] = 'Product short name is required';
-    } elseif (strlen($product_short_name) < 2) {
+    if (empty($productshortname)) {
+        $validationErrors['product_shor_tname'] = 'Product short name is required';
+    } elseif (strlen($productshortname) < 2) {
         $validationErrors['product_short_name'] = 'Product short name must be at least 2 characters long';
-    } elseif (strlen($product_short_name) > 255) {
+    } elseif (strlen($productshortname) > 255) {
         $validationErrors['product_short_name'] = 'Product short name is too long (maximum 255 characters)';
     }
     
@@ -149,7 +149,7 @@ try {
     }
     
     // Bind parameters (description is no longer nullable, product_code can be null but we already validated it's not empty)
-    $insertStmt->bind_param("ssdss", $name, $description, $lkr_price, $status, $product_code, $product_short_name);
+    $insertStmt->bind_param("ssdsss", $name, $description, $lkr_price, $status, $product_code, $productshortname);
     
     // Execute the query
     if ($insertStmt->execute()) {
@@ -159,7 +159,7 @@ try {
         if (isset($_SESSION['user_id'])) {
             $user_id = $_SESSION['user_id'];
             $action_type = 'product_create';
-            $details = "New product created - Name: {$name}, Code: {$product_code}, Price: LKR {$lkr_price}, Status: {$status}, short name: {$product_short_name}";
+            $details = "New product created - Name: {$name}, Code: {$product_code}, Price: LKR {$lkr_price}, Status: {$status}, short name: {$productshortname}";
             
             $logQuery = "INSERT INTO user_logs (user_id, action_type, inquiry_id, details) VALUES (?, ?, ?, ?)";
             $logStmt = $conn->prepare($logQuery);
