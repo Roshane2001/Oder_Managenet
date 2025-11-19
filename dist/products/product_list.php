@@ -50,7 +50,7 @@ if (!empty($search)) {
     $searchConditions[] = "(
                         id LIKE '%$searchTerm%' OR
                         name LIKE '%$searchTerm%' OR 
-                        short_name LIKE '%$searchTerm%' OR
+                        product_short_name LIKE '%$searchTerm%' OR
                         product_code LIKE '%$searchTerm%' OR 
                         description LIKE '%$searchTerm%' OR 
                         lkr_price LIKE '%$searchTerm%')";
@@ -71,7 +71,7 @@ if (!empty($product_name_filter)) {
 // Specific Product Short Name filter
 if (!empty($product_shortname_filter)) {
     $productshortNameTerm = $conn->real_escape_string($product_shortname_filter);
-    $searchConditions[] = "name LIKE '%$productshortNameTerm%'";
+    $searchConditions[] = "product_short_name LIKE '%$productshortNameTerm%'";
 }
 
 // Specific Product Code filter
@@ -178,7 +178,7 @@ $result = $conn->query($sql);
                         </div>
                         
                         <div class="form-group">
-                            <label for="product_name_filter">Product Short Name</label>
+                            <label for="product_shortname_filter">Product Short Name</label>
                             <input type="text" id="product_shortname_filter" name="product_shortname_filter" 
                                    placeholder="Enter product short name" 
                                    value="<?php echo htmlspecialchars($product_shortname_filter); ?>">
@@ -498,6 +498,7 @@ $result = $conn->query($sql);
             // Extract data from button attributes
             const productId = button.getAttribute('data-product-id');
             const productName = button.getAttribute('data-product-name');
+            const productshortName = button.getAttribute('data-product-shortname');
             const productCode = button.getAttribute('data-product-code');
             const productDescription = button.getAttribute('data-product-description');
             const productPrice = button.getAttribute('data-product-price');
@@ -507,6 +508,7 @@ $result = $conn->query($sql);
             // Populate modal fields
             document.getElementById('modal-product-id').textContent = productId;
             document.getElementById('modal-product-name').textContent = productName;
+            document.getElementById('modal-product-shortname').textContent = productshortName;
             document.getElementById('modal-product-code').textContent = productCode || 'N/A';
             document.getElementById('modal-product-description').textContent = productDescription || 'N/A';
             document.getElementById('modal-product-price').textContent = 'LKR ' + parseFloat(productPrice).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -590,6 +592,7 @@ $result = $conn->query($sql);
         function openStatusConfirmationModal(button) {
             const productId = button.getAttribute('data-product-id');
             const productName = button.getAttribute('data-product-name');
+            //const productshortName = button.getAttribute('data-product-shortname');
             const currentStatus = button.getAttribute('data-current-status');
             
             // Determine action based on current status
