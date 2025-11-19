@@ -200,8 +200,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <i class="fas fa-toggle-on"></i> Status<span class="required">*</span>
                                     </label>
                                     <select class="form-select" id="status" name="status" required>
-                                        <option value="active" <?php echo $product['status'] === 'active' ? 'selected' : ''; ?>>Active</option>
-                                        <option value="inactive" <?php echo $product['status'] === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
+                                        <option value="active" ?php echo $product['status'] === 'active' ? 'selected' : ''; ?>>Active</option>
+                                        <option value="inactive" ?php echo $product['status'] === 'inactive' ? 'selected' : ''; ?>>Inactive</option>
                                     </select>
                                     <div class="error-feedback" id="status-error"></div>
                                 </div>-->
@@ -529,7 +529,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             });
 
             $('#product_short_name').on('blur', function() {
-                const validation = validateName($(this).val());
+                const validation = validateproductshortname($(this).val());
                 if (!validation.valid) {
                     showError('product_short_name', validation.message);
                 } else {

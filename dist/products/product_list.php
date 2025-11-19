@@ -21,6 +21,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $product_id_filter = isset($_GET['product_id_filter']) ? trim($_GET['product_id_filter']) : '';
 $product_name_filter = isset($_GET['product_name_filter']) ? trim($_GET['product_name_filter']) : '';
+$product_shortname_filter = isset($_GET['product_shortname_filter']) ? trim($_GET['product_shortname_filter']) : '';
 $product_code_filter = isset($_GET['product_code_filter']) ? trim($_GET['product_code_filter']) : '';
 $description_filter = isset($_GET['description_filter']) ? trim($_GET['description_filter']) : '';
 $price_from = isset($_GET['price_from']) ? trim($_GET['price_from']) : '';
@@ -49,6 +50,7 @@ if (!empty($search)) {
     $searchConditions[] = "(
                         id LIKE '%$searchTerm%' OR
                         name LIKE '%$searchTerm%' OR 
+                        short_name LIKE '%$searchTerm%' OR
                         product_code LIKE '%$searchTerm%' OR 
                         description LIKE '%$searchTerm%' OR 
                         lkr_price LIKE '%$searchTerm%')";
@@ -64,6 +66,12 @@ if (!empty($product_id_filter)) {
 if (!empty($product_name_filter)) {
     $productNameTerm = $conn->real_escape_string($product_name_filter);
     $searchConditions[] = "name LIKE '%$productNameTerm%'";
+}
+
+// Specific Product Short Name filter
+if (!empty($product_shortname_filter)) {
+    $productshortNameTerm = $conn->real_escape_string($product_shortname_filter);
+    $searchConditions[] = "name LIKE '%$productshortNameTerm%'";
 }
 
 // Specific Product Code filter
@@ -169,6 +177,13 @@ $result = $conn->query($sql);
                                    value="<?php echo htmlspecialchars($product_name_filter); ?>">
                         </div>
                         
+                        <div class="form-group">
+                            <label for="product_name_filter">Product Short Name</label>
+                            <input type="text" id="product_shortname_filter" name="product_shortname_filter" 
+                                   placeholder="Enter product short name" 
+                                   value="<?php echo htmlspecialchars($product_shortname_filter); ?>">
+                        </div>
+
                         <div class="form-group">
                             <label for="product_code_filter">Product Code</label>
                             <input type="text" id="product_code_filter" name="product_code_filter" 

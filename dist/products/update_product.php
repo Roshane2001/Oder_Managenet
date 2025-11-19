@@ -76,7 +76,7 @@ try {
     // Get and sanitize form data
     $name = sanitizeInput($_POST['name'] ?? '');
     $productshortname = sanitizeInput($_POST['product_short_name'] ?? '');
-    $status = sanitizeInput($_POST['status'] ?? '');
+    $status = 'active';
     $lkr_price = sanitizeInput($_POST['lkr_price'] ?? '');
     $product_code = sanitizeInput($_POST['product_code'] ?? '');
     $description = sanitizeInput($_POST['description'] ?? '');
@@ -170,7 +170,7 @@ try {
     }
     
     // Bind parameters (description is now always required, no NULL handling needed)
-    $updateStmt->bind_param("sssdssi", $name, $productshortname, $description, $lkr_price, $status, $product_code, $product_id);
+    $updateStmt->bind_param("ssdsssi", $name, $description, $lkr_price, $status, $product_code, $productshortname, $product_id);
     
     // Execute the query
     if ($updateStmt->execute()) {

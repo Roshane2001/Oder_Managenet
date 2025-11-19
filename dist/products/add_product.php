@@ -455,6 +455,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     showSuccess('name');
                 }
             });
+
+            $('#productshortname').on('blur', function() {
+                const validation = validateproductshortame($(this).val());
+                if (!validation.valid) {
+                    showError('productshortname', validation.message);
+                } else {
+                    showSuccess('productshortname');
+                }
+            });
             
             
             $('#lkr_price').on('blur', function() {
