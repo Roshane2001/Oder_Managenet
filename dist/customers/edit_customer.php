@@ -317,9 +317,10 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <i class="fas fa-city"></i> City<span class="required">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="city_name" name="city_name"
-                                        autocomplete="off" required>
+                                        autocomplete="off" required value="<?= htmlspecialchars($customer['city_name'] ?? '') ?>">
+                                        <div class="error-feedback" id="city_id-error"></div>
                                     <input type="hidden" id="city_name" name="city_name" value="">
-                                    <input type="hidden" id="city_id" name="city_id" value="">
+                                    <input type="hidden" id="city_id" name="city_id" value="<?= htmlspecialchars($customer['city_id'] ?? '') ?>">
                                     <!--<select class="form-select" id="city_id" name="city_id" required>
                                         <option value="">Select City</option>
                                         ?php if (!empty($cities)): ?>

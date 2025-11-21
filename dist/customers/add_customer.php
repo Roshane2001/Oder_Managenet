@@ -271,8 +271,9 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <i class="fas fa-city"></i> City<span class="required">*</span>
                                     </label>
                                     <input type="text" class="form-control" id="city_name" name="city_name"
-                                        autocomplete="off" required>
-                                    <input type="hidden" id="city_name" name="city_name" value="">
+                                        autocomplete="off" placeholder="Select the city" required>
+                                        <div class="error-feedback" id="city_id-error"></div>
+                                    <!--<input type="hidden" id="city_name" name="city_name" value="">-->
                                     <input type="hidden" id="city_id" name="city_id" value="">
                                     <!--<select class="form-select" id="city_id" name="city_id" required>
                                         <option value="">Select City</option>
@@ -592,6 +593,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
             } else {
                 clearValidation('address_line2');
+            }
+        });
+
+        // Validate city: when user blurs the city_name field ensure a city_id is selected
+        $('#city_name').on('blur', function() {
+            const cityId = $('#city_id').val() || '';
+            const cityName = $(this).val().trim();
+
+            if (cityName === '') {
+                showError('city_id', 'City selection is required');
+            } else if (cityId === '' || cityId === null) {
+                showError('city_id', 'Please select a city from the suggestions');
+            } else {
+                showSuccess('city_id');
             }
         });
 
