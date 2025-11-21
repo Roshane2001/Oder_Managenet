@@ -1,23 +1,40 @@
 <?php
-include "/order_management/dist/connection/db_connection.php.php"; // your DB connection
+include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/connection/db_connection.php');
 
-if (isset($_POST['search'])) {
-    $search = $_POST['search'];
+// Accept GET parameter 'term' (used by the frontend). Return JSON list of cities.
+$term = '';
+if (isset($_GET['term'])) {
+    $term = trim($_GET['term']);
+}
 
-    $query = "SELECT city_name FROM city_table ";
-    
-    $stmt = $conn->prepare($query);
-    $param = "%$search%";
+if ($term === '') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([]);
+    exit;
+}
+
+$query = "SELECT city_id, city_name FROM city_table WHERE is_active = 1 AND city_name LIKE ? ORDER BY city_name ASC LIMIT 20";
+if ($stmt = $conn->prepare($query)) {
+    $param = "%{$term}%";
     $stmt->bind_param("s", $param);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            echo "<div class='suggest-item'>" . $row['word'] . "</div>";
-        }
-    } else {
-        echo "<div class='suggest-item no-result'>No results</div>";
+    $cities = [];
+    while ($row = $result->fetch_assoc()) {
+        $cities[] = [
+            'city_id' => $row['city_id'],
+            'city_name' => $row['city_name']
+        ];
     }
+
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode($cities);
+    $stmt->close();
+} else {
+    header('Content-Type: application/json; charset=utf-8', true, 500);
+    echo json_encode([]);
 }
+$conn->close();
+
 ?>
