@@ -316,23 +316,37 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                     <label for="city_id" class="form-label">
                                         <i class="fas fa-city"></i> City<span class="required">*</span>
                                     </label>
-                                    <select class="form-select" id="city_id" name="city_id" required>
+                                    <input type="text" class="form-control" id="city_name" name="city_name"
+                                        autocomplete="off" required>
+                                    <input type="hidden" id="city_name" name="city_name" value="">
+                                    <input type="hidden" id="city_id" name="city_id" value="">
+                                    <!--<select class="form-select" id="city_id" name="city_id" required>
                                         <option value="">Select City</option>
-                                        <?php if (!empty($cities)): ?>
-                                            <?php foreach ($cities as $city): ?>
-                                                <option value="<?= htmlspecialchars($city['city_id']) ?>" 
-                                                    <?= $customer['city_id'] == $city['city_id'] ? 'selected' : '' ?>>
-                                                    <?= htmlspecialchars($city['city_name']) ?>
+                                        ?php if (!empty($cities)): ?>
+                                            ?php foreach ($cities as $city): ?>
+                                                <option value="?= htmlspecialchars($city['city_id']) ?>" 
+                                                    ?= $customer['city_id'] == $city['city_id'] ? 'selected' : '' ?>>
+                                                    ?= htmlspecialchars($city['city_name']) ?>
                                                 </option>
-                                            <?php endforeach; ?>
-                                        <?php else: ?>
+                                            ?php endforeach; ?>
+                                        ?php else: ?>
                                             <option value="" disabled>No cities available</option>
-                                        <?php endif; ?>
+                                        ?php endif; ?>
                                     </select>
                                     <div class="error-feedback" id="city_id-error"></div>
-                                    <?php if (empty($cities)): ?>
+                                    ?php if (empty($cities)): ?>
                                         <div class="no-cities-message">No cities found. Please contact administrator.</div>
-                                    <?php endif; ?>
+                                    ?php endif; ?>-->
+                                    <div id="city_suggestion_box" class="autocomplete-box" style="
+        position:absolute;
+        background:#fff;
+        border:1px solid #ccc;
+        z-index: 1000;
+        width: 100%;
+        display:none;
+        max-height:150px;
+        overflow-y:auto;
+    "></div>
                                 </div>
                             </div>
                         </div>
@@ -845,6 +859,71 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             
             return isValid;
         }
+    </script>
+    <!--city search-->
+    <script>
+    $(function() {
+        const $input = $('#city_name');
+        const $box = $('#city_suggestion_box');
+        let timer = null;
+
+        $input.on('input', function() {
+            const term = $(this).val().trim();
+            $('#city_id').val(''); // clear selected id when typing
+            clearValidation('city_id');
+
+            if (term.length < 1) {
+                $box.hide();
+                return;
+            }
+
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+                $.ajax({
+                    url: 'search_city.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: { term: term },
+                    success: function(data) {
+                        $box.empty();
+                        if (Array.isArray(data) && data.length) {
+                            data.forEach(function(item) {
+                                const $item = $('<div class="suggest-item"></div>')
+                                    .text(item.city_name)
+                                    .attr('data-id', item.city_id)
+                                    .css({ padding: '8px', cursor: 'pointer' });
+                                $box.append($item);
+                            });
+                        } else {
+                            $box.html('<div class="suggest-item no-result" style="padding:8px;color:#666;">No results</div>');
+                        }
+                        $box.show();
+                    },
+                    error: function() {
+                        $box.hide();
+                    }
+                });
+            }, 250); // debounce
+        });
+
+        // Click on a suggestion
+        $box.on('click', '.suggest-item', function() {
+            const name = $(this).text();
+            const id = $(this).data('id') || '';
+            $input.val(name);
+            $('#city_id').val(id);
+            showSuccess('city_id');
+            $box.hide();
+        });
+
+        // Hide suggestions on outside click
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#city_suggestion_box, #city_name').length) {
+                $box.hide();
+            }
+        });
+    });
+    // ...existing code...
     </script>
 </body>
 </html>
