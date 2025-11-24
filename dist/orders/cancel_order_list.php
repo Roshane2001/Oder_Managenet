@@ -503,7 +503,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
                                         <!-- Order ID -->
                                         <td class="order-id">
-                                            <?php echo isset($row['']) ? htmlspecialchars($row['']) : ''; ?>
+                                            <?php echo isset($row['tracking_number']) ? htmlspecialchars($row['tracking_number']) : ''; ?>
                                         </td>
                                         
                                         <!-- Total Amount with Currency -->
