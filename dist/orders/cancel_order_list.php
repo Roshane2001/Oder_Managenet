@@ -164,6 +164,7 @@ $rbac = new RoleBasedAccessControl($conn, $current_user_id, $current_user_role);
  */
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $order_id_filter = isset($_GET['order_id_filter']) ? trim($_GET['order_id_filter']) : '';
+$tracking_id = isset($_GET['tracking_id']) ? trim($_GET['tracking_id']) : '';
 $customer_name_filter = isset($_GET['customer_name_filter']) ? trim($_GET['customer_name_filter']) : '';
 $user_id_filter = isset($_GET['user_id_filter']) ? trim($_GET['user_id_filter']) : '';
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
@@ -210,6 +211,7 @@ if (!empty($search)) {
     $searchConditions[] = "(
                         i.order_id LIKE '%$searchTerm%' OR 
                         c.name LIKE '%$searchTerm%' OR 
+                        i.tracking_number LIKE '%$searchTerm%' OR
                         i.issue_date LIKE '%$searchTerm%' OR 
                         i.due_date LIKE '%$searchTerm%' OR 
                         i.total_amount LIKE '%$searchTerm%' OR
@@ -221,6 +223,12 @@ if (!empty($search)) {
 if (!empty($order_id_filter)) {
     $orderIdTerm = $conn->real_escape_string($order_id_filter);
     $searchConditions[] = "i.order_id LIKE '%$orderIdTerm%'";
+}
+
+// Tracking ID filter
+if (!empty($tracking_id)) {
+    $trackingTerm = $conn->real_escape_string($tracking_id);
+    $searchConditions[] = "i.tracking_number LIKE '%$trackingTerm%'";
 }
 
 // Specific Customer Name filter
@@ -366,6 +374,13 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                    placeholder="Enter order ID" 
                                    value="<?php echo htmlspecialchars($order_id_filter); ?>">
                         </div>
+
+                        <div class="form-group">
+                            <label for="tracking_id">Tracking ID</label>
+                            <input type="text" id="tracking_id" name="tracking_id" 
+                                   placeholder="Enter tracking ID" 
+                                   value="<?php echo htmlspecialchars($tracking_id); ?>">
+                        </div>
                         
                         <div class="form-group">
                             <label for="customer_name_filter">Customer Name</label>
@@ -446,6 +461,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                 <th>Order ID</th>
                                 <th>Customer Name</th>
                                 <th>Issue Date - Due Date</th>
+                                <th>Tracking Number</th>
                                 <th>Total Amount</th>
                                 <th>Pay Status</th>
                                 <?php if ($rbac->shouldShowUserColumn()): ?>
@@ -483,6 +499,11 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                             echo "<span class='due-date'>" . $dueDate . "</span>";
                                             echo "</div>";
                                             ?>
+                                        </td>
+
+                                        <!-- Order ID -->
+                                        <td class="order-id">
+                                            <?php echo isset($row['']) ? htmlspecialchars($row['']) : ''; ?>
                                         </td>
                                         
                                         <!-- Total Amount with Currency -->
@@ -566,20 +587,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     </div>
                     <div class="pagination-controls">
                         <?php if ($page > 1): ?>
-                            <button class="page-btn" onclick="window.location.href='?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
+                            <button class="page-btn" onclick="window.location.href='?page=<?php echo $page - 1; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&tracking_id=<?php echo urlencode($tracking_id); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
                                 <i class="fas fa-chevron-left"></i>
                             </button>
                         <?php endif; ?>
                         
                         <?php for ($i = max(1, $page - 2); $i <= min($totalPages, $page + 2); $i++): ?>
                             <button class="page-btn <?php echo ($i == $page) ? 'active' : ''; ?>" 
-                                    onclick="window.location.href='?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
+                                    onclick="window.location.href='?page=<?php echo $i; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&tracking_id=<?php echo urlencode($tracking_id); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
                                 <?php echo $i; ?>
                             </button>
                         <?php endfor; ?>
                         
                         <?php if ($page < $totalPages): ?>
-                            <button class="page-btn" onclick="window.location.href='?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
+                            <button class="page-btn" onclick="window.location.href='?page=<?php echo $page + 1; ?>&limit=<?php echo $limit; ?>&order_id_filter=<?php echo urlencode($order_id_filter); ?>&customer_name_filter=<?php echo urlencode($customer_name_filter); ?>&user_id_filter=<?php echo urlencode($user_id_filter); ?>&tracking_id=<?php echo urlencode($tracking_id); ?>&date_from=<?php echo urlencode($date_from); ?>&date_to=<?php echo urlencode($date_to); ?>&pay_status_filter=<?php echo urlencode($pay_status_filter); ?>&search=<?php echo urlencode($search); ?>'">
                                 <i class="fas fa-chevron-right"></i>
                             </button>
                         <?php endif; ?>
@@ -615,6 +636,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             document.getElementById('date_from').value = '';
             document.getElementById('date_to').value = '';
             document.getElementById('pay_status_filter').value = '';
+            document.getElementById('tracking_id').value = '';
             
             // Only clear user_id_filter for admin users (if it exists) - SIMPLIFIED
             if (isAdmin) {
