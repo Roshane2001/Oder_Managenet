@@ -205,10 +205,10 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
                                 <div class="customer-form-group">
                                     <label for="email" class="form-label">
-                                        <i class="fas fa-envelope"></i> Email Address<span class="required">*</span>
+                                        <i class="fas fa-envelope"></i> Email Address <!--<span class="required">*</span>-->
                                     </label>
                                     <input type="email" class="form-control" id="email" name="email"
-                                        placeholder="customer@example.com" required>
+                                        placeholder="customer@example.com" ><!--required-->
                                     <div class="error-feedback" id="email-error"></div>
                                     <div class="email-suggestions" id="email-suggestions"></div>
                                 </div>
@@ -652,7 +652,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         };
     }
 
-    function validateEmail(email) {
+    /*function validateEmail(email) {
         if (email.trim() === '') {
             return {
                 valid: false,
@@ -677,7 +677,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             valid: true,
             message: ''
         };
-    }
+    }*/
 
     function validatePhone(phone) {
         if (phone.trim() === '') {
@@ -847,12 +847,11 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 validator: validateName,
                 value: name
             },
-            {
+            /*{
                 field: 'email',
                 validator: validateEmail,
                 value: email
-            },
-            {
+            },*/            {
                 field: 'phone',
                 validator: validatePhone,
                 value: phone

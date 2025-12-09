@@ -388,7 +388,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
             <!-- [ Main Content ] start -->
             <div class="order-container">
-                <form method="post" action="process_order.php" id="orderForm" target="_blank">
+                <!--<form method="post"  id="orderForm" target="_blank">-->
+                    <form method="post" action="process_order.php" id="orderForm" target="_blank">
                     <!-- Order Details Section -->
                     <div class="order-details-section">
                         <div class="order-details-grid">
@@ -744,6 +745,81 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
     include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/scripts.php');
     ?>
     <!-- END SCRIPTS -->
+
+<!-- city search -->
+    <script>
+    $(function() {
+        const $input = $('#city_name');
+        const $box = $('#city_suggestion_box');
+        let timer = null;
+
+        $input.on('input', function() {
+            const term = $(this).val().trim();
+            $('#city_id').val(''); // clear selected id when typing
+            clearValidation('city_id');
+
+            if (term.length < 1) {
+                $box.hide();
+                return;
+            }
+
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+                $.ajax({
+                    url: 'search_city.php',
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        term: term
+                    },
+                    success: function(data) {
+                        $box.empty();
+                        if (Array.isArray(data) && data.length) {
+                            data.forEach(function(item) {
+                                const $item = $(
+                                        '<div class="suggest-item"></div>')
+                                    .text(item.city_name)
+                                    .attr('data-id', item.city_id)
+                                    .css({
+                                        padding: '8px',
+                                        cursor: 'pointer'
+                                    });
+                                $box.append($item);
+                            });
+                        } else {
+                            $box.html(
+                                '<div class="suggest-item no-result" style="padding:8px;color:#666;">No results</div>'
+                                );
+                        }
+                        $box.show();
+                    },
+                    error: function() {
+                        $box.hide();
+                    }
+                });
+            }, 250); // debounce
+        });
+
+        // Click on a suggestion
+        $box.on('click', '.suggest-item', function() {
+            const name = $(this).text();
+            const id = $(this).data('id') || '';
+            $input.val(name);
+            $('#city_id').val(id);
+            showSuccess('city_id');
+            $box.hide();
+        });
+
+        // Hide suggestions on outside click
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#city_suggestion_box, #city_name').length) {
+                $box.hide();
+            }
+        });
+    });
+    // ...existing code...
+    </script>
+
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Store the delivery fee value from PHP
@@ -837,25 +913,25 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
 
                 // Email validation (required for new customers)
-                if (customerEmail === '') {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'validation-error';
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.style.fontSize = '0.875rem';
-                    errorDiv.style.marginTop = '0.25rem';
-                    errorDiv.textContent = 'Email is required';
-                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    isValid = false;
-                } else if (!isValidEmail(customerEmail)) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'validation-error';
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.style.fontSize = '0.875rem';
-                    errorDiv.style.marginTop = '0.25rem';
-                    errorDiv.textContent = 'Invalid email format';
-                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    isValid = false;
-                }
+                //if (customerEmail === '') {
+                    //const errorDiv = document.createElement('div');
+                    //errorDiv.className = 'validation-error';
+                    //errorDiv.style.color = '#dc3545';
+                    //errorDiv.style.fontSize = '0.875rem';
+                    //errorDiv.style.marginTop = '0.25rem';
+                    //errorDiv.textContent = 'Email is required';
+                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    //isValid = false;
+                //} else if (!isValidEmail(customerEmail)) {
+                    //const errorDiv = document.createElement('div');
+                    //errorDiv.className = 'validation-error';
+                    //errorDiv.style.color = '#dc3545';
+                    //errorDiv.style.fontSize = '0.875rem';
+                    //errorDiv.style.marginTop = '0.25rem';
+                    //errorDiv.textContent = 'Invalid email format';
+                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    //isValid = false;
+                //}
 
                 // Phone validation (required for new customers)
                 if (customerPhone === '') {
@@ -1502,6 +1578,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             const customerEmail = document.getElementById('customer_email').value.trim();
             const customerPhone = document.getElementById('customer_phone').value.trim();
             const cityId = document.getElementById('city_id').value;
+            const cityName = document.getElementById('city_name').value.trim();
             const addressLine1 = document.getElementById('address_line1').value.trim();
 
             // Clear previous customer validation errors
@@ -1523,25 +1600,25 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
             // For new customers, all fields are required
             if (!isExistingCustomer) {
-                if (customerEmail === '') {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'validation-error';
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.style.fontSize = '0.875rem';
-                    errorDiv.style.marginTop = '0.25rem';
-                    errorDiv.textContent = 'Email is required';
-                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    isValid = false;
-                } else if (!isValidEmail(customerEmail)) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'validation-error';
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.style.fontSize = '0.875rem';
-                    errorDiv.style.marginTop = '0.25rem';
-                    errorDiv.textContent = 'Invalid email format';
-                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    isValid = false;
-                }
+                //if (customerEmail === '') {
+                    //const errorDiv = document.createElement('div');
+                    //errorDiv.className = 'validation-error';
+                    //errorDiv.style.color = '#dc3545';
+                    //errorDiv.style.fontSize = '0.875rem';
+                    //errorDiv.style.marginTop = '0.25rem';
+                    //errorDiv.textContent = 'Email is required';
+                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    //isValid = false;
+                //} else if (!isValidEmail(customerEmail)) {
+                    //const errorDiv = document.createElement('div');
+                    //errorDiv.className = 'validation-error';
+                    //errorDiv.style.color = '#dc3545';
+                    //errorDiv.style.fontSize = '0.875rem';
+                    //errorDiv.style.marginTop = '0.25rem';
+                    //errorDiv.textContent = 'Invalid email format';
+                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    //isValid = false;
+                //}
 
                 if (customerPhone === '') {
                     const errorDiv = document.createElement('div');
@@ -1627,7 +1704,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
         // Customer fields validation on input
         document.getElementById('customer_name').addEventListener('input', validateFormAndToggleSubmit);
-        document.getElementById('customer_email').addEventListener('input', validateFormAndToggleSubmit);
+        //document.getElementById('customer_email').addEventListener('input', validateFormAndToggleSubmit);
         document.getElementById('customer_phone').addEventListener('input', validateFormAndToggleSubmit);
         document.getElementById('city_id').addEventListener('change', validateFormAndToggleSubmit);
         document.getElementById('address_line1').addEventListener('input', validateFormAndToggleSubmit);
@@ -1784,79 +1861,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
     });
     </script>
 
-    <!-- city search -->
-    <script>
-    $(function() {
-        const $input = $('#city_name');
-        const $box = $('#city_suggestion_box');
-        let timer = null;
-
-        $input.on('input', function() {
-            const term = $(this).val().trim();
-            $('#city_id').val(''); // clear selected id when typing
-            clearValidation('city_id');
-
-            if (term.length < 1) {
-                $box.hide();
-                return;
-            }
-
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(function() {
-                $.ajax({
-                    url: 'search_city.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        term: term
-                    },
-                    success: function(data) {
-                        $box.empty();
-                        if (Array.isArray(data) && data.length) {
-                            data.forEach(function(item) {
-                                const $item = $(
-                                        '<div class="suggest-item"></div>')
-                                    .text(item.city_name)
-                                    .attr('data-id', item.city_id)
-                                    .css({
-                                        padding: '8px',
-                                        cursor: 'pointer'
-                                    });
-                                $box.append($item);
-                            });
-                        } else {
-                            $box.html(
-                                '<div class="suggest-item no-result" style="padding:8px;color:#666;">No results</div>'
-                                );
-                        }
-                        $box.show();
-                    },
-                    error: function() {
-                        $box.hide();
-                    }
-                });
-            }, 250); // debounce
-        });
-
-        // Click on a suggestion
-        $box.on('click', '.suggest-item', function() {
-            const name = $(this).text();
-            const id = $(this).data('id') || '';
-            $input.val(name);
-            $('#city_id').val(id);
-            showSuccess('city_id');
-            $box.hide();
-        });
-
-        // Hide suggestions on outside click
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('#city_suggestion_box, #city_name').length) {
-                $box.hide();
-            }
-        });
-    });
-    // ...existing code...
-    </script>
+    
 
 </body>
 
