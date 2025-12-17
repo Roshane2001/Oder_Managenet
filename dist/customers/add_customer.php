@@ -205,12 +205,12 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
                                 <div class="customer-form-group">
                                     <label for="email" class="form-label">
-                                        <i class="fas fa-envelope"></i> Email Address <!--<span class="required">*</span>-->
+                                        <i class="fas fa-envelope"></i> Email Address 
                                     </label>
                                     <input type="email" class="form-control" id="email" name="email"
-                                        placeholder="customer@example.com" ><!--required-->
+                                        placeholder="customer@example.com" >
                                     <div class="error-feedback" id="email-error"></div>
-                                    <div class="email-suggestions" id="email-suggestions"></div>
+                                    <!--<div class="email-suggestions" id="email-suggestions"></div>-->
                                 </div>
                             </div>
 
@@ -225,7 +225,17 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                     <div class="error-feedback" id="phone-error"></div>
                                     <div class="phone-hint">Enter 10-digit Sri Lankan mobile number</div>
                                 </div>
-
+                                <div class="customer-form-group">
+                                    <label for="phone2" class="form-label">
+                                        <i class="fas fa-phone"></i> Phone Number 2
+                                    </label>
+                                    <input type="tel" class="form-control" id="phone2" name="phone2"
+                                        placeholder="0771234567">
+                                    <div class="error-feedback" id="phone2-error"></div>
+                                    <div class="phone-hint">Enter 10-digit Sri Lankan mobile number</div>
+                                </div>
+                            </div>
+                            <div class="form-row">
                                 <div class="customer-form-group">
                                     <label for="status" class="form-label">
                                         <i class="fas fa-toggle-on"></i> Status<span class="required">*</span>
@@ -528,6 +538,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             this.value = value;
         });
 
+        // Auto-format phone number 2
+        $('#phone2').on('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length > 10) {
+                value = value.substring(0, 10);
+            }
+            this.value = value;
+        });
+
         // Email formatting
         $('#email').on('input', function() {
             this.value = this.value.toLowerCase().trim();
@@ -546,7 +565,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             }
         });
 
-        $('#email').on('blur', function() {
+        /*$('#email').on('blur', function() {
             const validation = validateEmail($(this).val());
             if (!validation.valid) {
                 showError('email', validation.message);
@@ -563,7 +582,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             } else {
                 $('#email-suggestions').html('');
             }
-        });
+        });*/
 
         $('#phone').on('blur', function() {
             const validation = validatePhone($(this).val());
@@ -571,6 +590,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 showError('phone', validation.message);
             } else {
                 showSuccess('phone');
+            }
+        });
+
+        $('#phone2').on('blur', function() {
+            const val = $(this).val() || '';
+            if (val.trim() === '') {
+                clearValidation('phone2');
+            } else {
+                const validation = validatePhoneOptional(val);
+                if (!validation.valid) {
+                    showError('phone2', validation.message);
+                } else {
+                    showSuccess('phone2');
+                }
             }
         });
 
@@ -652,32 +685,37 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         };
     }
 
-    /*function validateEmail(email) {
-        if (email.trim() === '') {
+    function validateEmail(email) {
+        if (!email || email.trim() === '') {
+            // Email is optional — empty value is considered valid
             return {
-                valid: false,
-                message: 'Email address is required'
+                valid: true,
+                message: ''
             };
         }
+
         if (email.length > 100) {
             return {
                 valid: false,
                 message: 'Email address is too long (maximum 100 characters)'
             };
         }
-        const emailRegex =
-            /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+        // Simple but effective email format check
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
         if (!emailRegex.test(email)) {
             return {
                 valid: false,
                 message: 'Please enter a valid email address'
             };
         }
+
         return {
             valid: true,
             message: ''
         };
-    }*/
+    }
 
     function validatePhone(phone) {
         if (phone.trim() === '') {
@@ -715,6 +753,17 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             valid: true,
             message: ''
         };
+    }
+
+    // Optional phone validator: allows empty or delegates to validatePhone
+    function validatePhoneOptional(phone) {
+        if (!phone || phone.trim() === '') {
+            return {
+                valid: true,
+                message: ''
+            };
+        }
+        return validatePhone(phone);
     }
 
     function validateAddressLine1(address) {
@@ -836,7 +885,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
         // Get all field values
         const name = $('#name').val();
-        const email = $('#email').val();
+        //const email = $('#email').val();
         const phone = $('#phone').val();
         const addressLine1 = $('#address_line1').val();
         const cityId = $('#city_id').val();
@@ -888,6 +937,20 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             } else {
                 showSuccess('address_line2');
             }
+        }
+
+        // Optional phone2 validation: only when filled (not required)
+        const phone2 = $('#phone2').val() || '';
+        if (phone2.trim() !== '') {
+            const phone2Validation = validatePhoneOptional(phone2);
+            if (!phone2Validation.valid) {
+                showError('phone2', phone2Validation.message);
+                isValid = false;
+            } else {
+                showSuccess('phone2');
+            }
+        } else {
+            clearValidation('phone2');
         }
 
         return isValid;

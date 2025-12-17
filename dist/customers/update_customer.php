@@ -100,7 +100,12 @@ try {
     $customer_id = intval($_POST['customer_id'] ?? 0);
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
+    // Treat empty email as NULL so DB can store NULL instead of empty string
+    //if ($email === '') {
+    //    $email = null;
+    //}
     $phone = trim($_POST['phone'] ?? '');
+    $phone2 = trim($_POST['phone2'] ?? '');
     $status = trim($_POST['status'] ?? 'Active');
     $address_line1 = trim($_POST['address_line1'] ?? '');
     $address_line2 = trim($_POST['address_line2'] ?? '');
@@ -117,7 +122,7 @@ try {
     }
 
     // Check if customer exists and get all current data for comparison
-    $customerCheckStmt = $conn->prepare("SELECT customer_id, name, email, phone, status, address_line1, address_line2, city_id FROM customers WHERE customer_id = ?");
+    $customerCheckStmt = $conn->prepare("SELECT customer_id, name, email, phone, phone2, status, address_line1, address_line2, city_id FROM customers WHERE customer_id = ?");
     $customerCheckStmt->bind_param("i", $customer_id);
     $customerCheckStmt->execute();
     $customerCheckResult = $customerCheckStmt->get_result();
@@ -142,9 +147,7 @@ try {
     if (empty($name)) {
         $errors['name'] = 'Customer name is required';
     }
-    if (empty($email)) {
-        $errors['email'] = 'Email address is required';
-    }
+    // Email is optional; no required check here
     if (empty($phone)) {
         $errors['phone'] = 'Phone number is required';
     }
@@ -180,6 +183,23 @@ try {
         }
         $phoneCheckStmt->close();
     }
+
+    // Check for duplicate phone (excluding current customer)
+    if (!empty($phone2) && $phone2 !== $existingCustomer['phone2']) {
+        $phoneCheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE phone2 = ? AND customer_id != ?");
+        $phoneCheckStmt->bind_param("si", $phone2, $customer_id);
+        $phoneCheckStmt->execute();
+        $phoneCheckResult = $phoneCheckStmt->get_result();
+        
+        if ($phoneCheckResult->num_rows > 0) {
+            $errors['phone2'] = 'Phone number already exists. Please use a different phone number.';
+        }
+        $phoneCheckStmt->close();
+    }
+
+    if (!empty($phone) && !empty($phone2) && $phone === $phone2) {
+    $errors['phone2'] = 'Phone and Phone 2 cannot be the same number.';
+}
 
     // Validate city exists and is active
     if ($city_id > 0) {
@@ -223,6 +243,10 @@ try {
         $hasChanges = true;
         $changes[] = "Phone: '{$existingCustomer['phone']}' → '{$phone}'";
     }
+    if (($phone2 ?? '') !== ($existingCustomer['phone2'] ?? '')) {
+        $hasChanges = true;
+        $changes[] = "Phone2: '{$existingCustomer['phone2']}' → '{$phone2}'";
+    }
     if ($status !== $existingCustomer['status']) {
         $hasChanges = true;
         $changes[] = "Status: '{$existingCustomer['status']}' → '{$status}'";
@@ -250,6 +274,7 @@ try {
             'name' => $name,
             'email' => $email,
             'phone' => $phone,
+            'phone2' => $phone2,
             'status' => $status
         ];
         echo json_encode($response);
@@ -259,14 +284,14 @@ try {
     // Start transaction
     $conn->begin_transaction();
 
-    // Prepare and execute customer update
+    // Prepare and execute customer update (include phone2)
     $updateStmt = $conn->prepare("
         UPDATE customers 
-        SET name = ?, email = ?, phone = ?, status = ?, address_line1 = ?, address_line2 = ?, city_id = ?, updated_at = NOW()
+        SET name = ?, email = ?, phone = ?, phone2 = ?, status = ?, address_line1 = ?, address_line2 = ?, city_id = ?, updated_at = NOW()
         WHERE customer_id = ?
     ");
 
-    $updateStmt->bind_param("ssssssii", $name, $email, $phone, $status, $address_line1, $address_line2, $city_id, $customer_id);
+    $updateStmt->bind_param("sssssssii", $name, $email, $phone, $phone2, $status, $address_line1, $address_line2, $city_id, $customer_id);
 
     if ($updateStmt->execute()) {
         // Check if any rows were affected
@@ -292,6 +317,7 @@ try {
                 'name' => $name,
                 'email' => $email,
                 'phone' => $phone,
+                'phone2' => $phone2,
                 'status' => $status
             ];
             

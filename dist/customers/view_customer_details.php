@@ -20,7 +20,7 @@ if ($customer_id <= 0) {
 }
 
 // Fetch customer details
-$sql = "SELECT customer_id, name, email, phone, address_line1, address_line2, city_id, postal_code, status, created_at, updated_at 
+$sql = "SELECT customer_id, name, email, phone, phone2, address_line1, address_line2, city_id, postal_code, status, created_at, updated_at 
         FROM customers 
         WHERE customer_id = ?";
 
@@ -68,7 +68,7 @@ $updated_date = date('F j, Y \a\t h:i A', strtotime($customer['updated_at']));
     
     <div class="detail-row">
         <div class="detail-label">Mobile:</div>
-        <div class="detail-value"><?php echo htmlspecialchars($customer['phone']); ?></div>
+        <div class="detail-value"><?php echo htmlspecialchars($customer['phone']); ?>/ <?php echo htmlspecialchars($customer['phone2']); ?></div>
     </div>
     
     <div class="detail-row">

@@ -100,6 +100,7 @@ try {
     $name = trim($_POST['name'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $phone = trim($_POST['phone'] ?? '');
+    $phone2 = trim($_POST['phone2'] ?? '');
     $status = trim($_POST['status'] ?? 'Active');
     $address_line1 = trim($_POST['address_line1'] ?? '');
     $address_line2 = trim($_POST['address_line2'] ?? '');
@@ -112,9 +113,9 @@ try {
     if (empty($name)) {
         $errors['name'] = 'Customer name is required';
     }
-    if (empty($email)) {
+    /*if (empty($email)) {
         $errors['email'] = 'Email address is required';
-    }
+    }*/
     if (empty($phone)) {
         $errors['phone'] = 'Phone number is required';
     }
@@ -126,27 +127,57 @@ try {
     }
 
     // Check for duplicate email
-    if (!empty($email)) {
-        $emailCheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE email = ?");
-        $emailCheckStmt->bind_param("s", $email);
-        $emailCheckStmt->execute();
-        $emailCheckResult = $emailCheckStmt->get_result();
-        
-        if ($emailCheckResult->num_rows > 0) {
-            $errors['email'] = 'Email address already exists. Please use a different email.';
-        }
-        $emailCheckStmt->close();
+    // Check duplicate for phone (against phone & phone2)
+if (!empty($phone)) {
+    $stmt = $conn->prepare("
+        SELECT customer_id 
+        FROM customers 
+        WHERE phone = ? OR phone2 = ?
+    ");
+    $stmt->bind_param("ss", $phone, $phone);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $errors['phone'] = 'This phone number already exists.';
     }
+    $stmt->close();
+}
+
 
     // Check for duplicate phone
-    if (!empty($phone)) {
-        $phoneCheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE phone = ?");
-        $phoneCheckStmt->bind_param("s", $phone);
+    // Check duplicate for phone2 (against phone & phone2)
+if (!empty($phone2)) {
+    $stmt = $conn->prepare("
+        SELECT customer_id 
+        FROM customers 
+        WHERE phone = ? OR phone2 = ?
+    ");
+    $stmt->bind_param("ss", $phone2, $phone2);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $errors['phone2'] = 'This phone number already exists.';
+    }
+    $stmt->close();
+}
+
+if (!empty($phone) && !empty($phone2) && $phone === $phone2) {
+    $errors['phone2'] = 'Phone and Phone 2 cannot be the same number.';
+}
+
+
+
+    // Check for duplicate phone 2
+    if (!empty($phone2)) {
+        $phoneCheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE phone2 = ?");
+        $phoneCheckStmt->bind_param("s", $phone2);
         $phoneCheckStmt->execute();
         $phoneCheckResult = $phoneCheckStmt->get_result();
         
         if ($phoneCheckResult->num_rows > 0) {
-            $errors['phone'] = 'Phone number already exists. Please use a different phone number.';
+            $errors['phone2'] = 'Phone number 2 already exists. Please use a different phone number.';
         }
         $phoneCheckStmt->close();
     }
@@ -182,17 +213,16 @@ try {
 
     // Prepare and execute customer insert
     $insertStmt = $conn->prepare("
-        INSERT INTO customers (name, email, phone, status, address_line1, address_line2, city_id, created_at, updated_at) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        INSERT INTO customers (name, email, phone, phone2, status, address_line1, address_line2, city_id, created_at, updated_at) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
     ");
 
-    $insertStmt->bind_param("ssssssi", $name, $email, $phone, $status, $address_line1, $address_line2, $city_id);
-
+    $insertStmt->bind_param("sssssssi", $name, $email, $phone, $phone2, $status, $address_line1, $address_line2, $city_id);
     if ($insertStmt->execute()) {
         $customer_id = $conn->insert_id;
         
         // Log customer creation action
-        $logDetails = "New customer added - Name: {$name}, Email: {$email}, Phone: {$phone}, Status: {$status}";
+        $logDetails = "New customer added - Name: {$name}, Email: {$email}, Phone: {$phone}, Phone2: {$phone2}, Status: {$status}";
         $logResult = logUserAction($conn, $currentUserId, 'customer_create', $customer_id, $logDetails);
         
         if (!$logResult) {
@@ -211,6 +241,7 @@ try {
             'name' => $name,
             'email' => $email,
             'phone' => $phone,
+            'phone2' => $phone2,
             'status' => $status
         ];
         

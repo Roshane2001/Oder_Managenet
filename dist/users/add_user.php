@@ -226,6 +226,19 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                 </div>
                             </div>
 
+                            <!-- Second Row: Password and Mobile 2 -->
+                            <div class="form-row">  
+                                <div class="customer-form-group">
+                                    <label for="mobile" class="form-label">
+                                        <i class="fas fa-mobile-alt"></i> Mobile Number 2
+                                    </label>
+                                    <input type="tel" class="form-control" id="mobile" name="mobile"
+                                        placeholder="0771234567" >
+                                    <div class="error-feedback" id="mobile-error"></div>
+                                    <div class="phone-hint">Enter 10-digit Sri Lankan mobile number</div>
+                                </div>
+                            </div>
+
                             <!-- Third Row: NIC and Status -->
                             <div class="form-row">
                                 <div class="customer-form-group">
@@ -511,6 +524,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
                 this.value = value;
             });
+
+            // Auto-format mobile number 2
+            $('#mobile').on('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length > 10) {
+                    value = value.substring(0, 10);
+                }
+                this.value = value;
+            });
             
             // Auto-format NIC
             $('#nic').on('input', function() {
@@ -603,6 +625,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     showSuccess('mobile');
                 }
             });
+
+            
             
             $('#nic').on('blur', function() {
                 const validation = validateNIC($(this).val());
@@ -711,6 +735,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             return { valid: true, message: '' };
         }
 
+        
         function validateNIC(nic) {
             if (nic.trim() === '') {
                 return { valid: false, message: 'NIC number is required' };

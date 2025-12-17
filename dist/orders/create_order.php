@@ -137,93 +137,6 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
     <link rel="stylesheet" href="../assets/css/styles.css" id="main-style-link" />
     <link rel="stylesheet" href="../assets/css/alert.css" id="main-style-link" />
 
-
-    <style>
-    .ajax-notification {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        max-width: 400px;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
-        animation: slideInRight 0.3s ease-out;
-        border: 1px solid transparent;
-        padding: 1rem 1.5rem;
-        border-left: 4px solid;
-    }
-
-    .alert-success {
-        color: #0f5132;
-        background: linear-gradient(135deg, #f8f9fa 0%, #d1e7dd 100%);
-        border-left-color: #28a745;
-    }
-
-    .alert-danger {
-        color: #842029;
-        background: linear-gradient(135deg, #f8f9fa 0%, #f8d7da 100%);
-        border-left-color: #dc3545;
-    }
-
-    .alert-warning {
-        color: #664d03;
-        background: linear-gradient(135deg, #f8f9fa 0%, #fff3cd 100%);
-        border-left-color: #ffc107;
-    }
-
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    .loading-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 10000;
-    }
-
-    .loading-spinner {
-        text-align: center;
-        color: white;
-    }
-
-    .spinner {
-        width: 50px;
-        height: 50px;
-        border: 5px solid rgba(255, 255, 255, 0.3);
-        border-top: 5px solid #fff;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 0 auto 20px;
-    }
-
-
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-    </style>
 </head>
 
 <body>
@@ -388,8 +301,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
             <!-- [ Main Content ] start -->
             <div class="order-container">
-                <!--<form method="post"  id="orderForm" target="_blank">-->
-                    <form method="post" action="process_order.php" id="orderForm" target="_blank">
+                <form method="post" action="process_order.php" id="orderForm" target="_blank">
                     <!-- Order Details Section -->
                     <div class="order-details-section">
                         <div class="order-details-grid">
@@ -451,30 +363,47 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                     <input type="text" class="form-control" name="customer_phone" id="customer_phone"
                                         placeholder="(07) xxxx xxxx">
                                 </div>
+                                <!--mobile no 2-->
                                 <div class="form-group">
+                                    <label class="form-label">Phone 2</label>
+                                    <input type="text" class="form-control" name="customer_phone_2"
+                                        id="customer_phone_2" placeholder="(07) xxxx xxxx">
+                                </div>
+
+                                <!--<div class="form-group">
                                     <label class="form-label">City</label>
+                                    <select class="form-control" name="city_id" id="city_id">
+                                        <option value="">-- Select City --</option>
+                                        <?php
+                                        if ($cityResult && $cityResult->num_rows > 0) {
+                                            while ($city = $cityResult->fetch_assoc()) {
+                                                echo '<option value="' . $city['city_id'] . '">' . htmlspecialchars($city['city_name']) . '</option>';
+                                            }
+                                        }
+                                        ?>
+                                    </select>
+                                </div>-->
+                                <!---- City Autocomplete Field ---->
+                                <div class="form-group">
+                                    <label class="form-label">
+                                        City
+                                    </label>
                                     <input type="text" class="form-control" id="city_name" name="city_name"
-                                        autocomplete="off" placeholder="Select the city" required>
+                                        autocomplete="off" placeholder="Select the city">
+                                    <!--<div class="error-feedback" id="city_id-error"></div>-->
                                     <input type="hidden" id="city_id" name="city_id" value="">
                                     <div id="city_suggestion_box" class="autocomplete-box" style="
         position:absolute;
         background:#fff;
         border:1px solid #ccc;
         z-index: 1000;
-        width: 100%;
+        width: 20%;
         display:none;
         max-height:150px;
         overflow-y:auto;
     "></div>
-                                    <!--<?php
-                                        if ($cityResult && $cityResult->num_rows > 0) {
-                                            while ($city = $cityResult->fetch_assoc()) {
-                                                echo '<option value="' . $city['city_id'] . '">' . htmlspecialchars($city['city_name']) . '</option>';
-                                            }
-                                        }
-                                        ?>-->
-
                                 </div>
+                                <!---- City Autocomplete Field ---->
                                 <div class="form-group">
                                     <label class="form-label">Address Line 1</label>
                                     <input type="text" class="form-control" name="address_line1" id="address_line1">
@@ -745,80 +674,9 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
     include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/scripts.php');
     ?>
     <!-- END SCRIPTS -->
+    <!-- jQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
-<!-- city search -->
-    <script>
-    $(function() {
-        const $input = $('#city_name');
-        const $box = $('#city_suggestion_box');
-        let timer = null;
-
-        $input.on('input', function() {
-            const term = $(this).val().trim();
-            $('#city_id').val(''); // clear selected id when typing
-            clearValidation('city_id');
-
-            if (term.length < 1) {
-                $box.hide();
-                return;
-            }
-
-            if (timer) clearTimeout(timer);
-            timer = setTimeout(function() {
-                $.ajax({
-                    url: 'search_city.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    data: {
-                        term: term
-                    },
-                    success: function(data) {
-                        $box.empty();
-                        if (Array.isArray(data) && data.length) {
-                            data.forEach(function(item) {
-                                const $item = $(
-                                        '<div class="suggest-item"></div>')
-                                    .text(item.city_name)
-                                    .attr('data-id', item.city_id)
-                                    .css({
-                                        padding: '8px',
-                                        cursor: 'pointer'
-                                    });
-                                $box.append($item);
-                            });
-                        } else {
-                            $box.html(
-                                '<div class="suggest-item no-result" style="padding:8px;color:#666;">No results</div>'
-                                );
-                        }
-                        $box.show();
-                    },
-                    error: function() {
-                        $box.hide();
-                    }
-                });
-            }, 250); // debounce
-        });
-
-        // Click on a suggestion
-        $box.on('click', '.suggest-item', function() {
-            const name = $(this).text();
-            const id = $(this).data('id') || '';
-            $input.val(name);
-            $('#city_id').val(id);
-            showSuccess('city_id');
-            $box.hide();
-        });
-
-        // Hide suggestions on outside click
-        $(document).on('click', function(e) {
-            if (!$(e.target).closest('#city_suggestion_box, #city_name').length) {
-                $box.hide();
-            }
-        });
-    });
-    // ...existing code...
-    </script>
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -842,8 +700,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Function to toggle field editability based on customer type
         function toggleCustomerFields(readonly = false) {
             const fields = [
-                'customer_name', 'customer_email', 'customer_phone',
-                'city_id', 'city_name', 'address_line1', 'address_line2'
+                'customer_name', 'customer_email', 'customer_phone', 'customer_phone_2',
+                'city_id', 'city_name', 'address_line1', 'address_line2' //newadd
             ];
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -871,6 +729,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             document.getElementById('customer_name').value = '';
             document.getElementById('customer_email').value = '';
             document.getElementById('customer_phone').value = '';
+            document.getElementById('customer_phone_2').value = '';
             document.getElementById('city_id').value = '';
             document.getElementById('city_name').value = '';
             document.getElementById('address_line1').value = '';
@@ -887,10 +746,9 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Enhanced customer information validation
         function validateCustomerInfo() {
             const customerName = document.getElementById('customer_name').value.trim();
-            const customerEmail = document.getElementById('customer_email').value.trim();
+            //const customerEmail = document.getElementById('customer_email').value.trim();
             const customerPhone = document.getElementById('customer_phone').value.trim();
             const cityId = document.getElementById('city_id').value;
-            const cityName = document.getElementById('city_name').value;
             const addressLine1 = document.getElementById('address_line1').value.trim();
 
             // Clear previous error messages
@@ -914,23 +772,23 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
                 // Email validation (required for new customers)
                 //if (customerEmail === '') {
-                    //const errorDiv = document.createElement('div');
-                    //errorDiv.className = 'validation-error';
-                    //errorDiv.style.color = '#dc3545';
-                    //errorDiv.style.fontSize = '0.875rem';
-                    //errorDiv.style.marginTop = '0.25rem';
-                    //errorDiv.textContent = 'Email is required';
-                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    //isValid = false;
+                //const errorDiv = document.createElement('div');
+                //errorDiv.className = 'validation-error';
+                //errorDiv.style.color = '#dc3545';
+                //errorDiv.style.fontSize = '0.875rem';
+                //errorDiv.style.marginTop = '0.25rem';
+                //errorDiv.textContent = 'Email is required';
+                //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                //isValid = false;
                 //} else if (!isValidEmail(customerEmail)) {
-                    //const errorDiv = document.createElement('div');
-                    //errorDiv.className = 'validation-error';
-                    //errorDiv.style.color = '#dc3545';
-                    //errorDiv.style.fontSize = '0.875rem';
-                    //errorDiv.style.marginTop = '0.25rem';
-                    //errorDiv.textContent = 'Invalid email format';
-                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    //isValid = false;
+                //const errorDiv = document.createElement('div');
+                //errorDiv.className = 'validation-error';
+                //errorDiv.style.color = '#dc3545';
+                //errorDiv.style.fontSize = '0.875rem';
+                //errorDiv.style.marginTop = '0.25rem';
+                //errorDiv.textContent = 'Invalid email format';
+                //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                //isValid = false;
                 //}
 
                 // Phone validation (required for new customers)
@@ -1150,17 +1008,23 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     'data-customer-id');
                 document.getElementById('customer_name').value = row.getAttribute('data-name');
                 document.getElementById('customer_email').value = row.getAttribute(
-                'data-email');
+                    'data-email');
                 document.getElementById('customer_phone').value = row.getAttribute(
-                'data-phone');
+                    'data-phone');
+                document.getElementById('customer_phone2').value = row.getAttribute(
+                    'data-phone2');
                 document.getElementById('address_line1').value = row.getAttribute(
                     'data-address-line1');
                 document.getElementById('address_line2').value = row.getAttribute(
                     'data-address-line2');
-                document.getElementById('city_id').value = row.getAttribute('data-city-id');
-                document.getElementById('city_name').value = row.getAttribute(
-                'data-city-name'); // <- added
 
+                // Fill city name and hidden city_id from the selected customer row (if provided)
+                const cityName = row.getAttribute('data-city-name') || '';
+                const cityId = row.getAttribute('data-city-id') || '';
+                const cityNameInput = document.getElementById('city_name');
+                const cityIdInput = document.getElementById('city_id');
+                if (cityNameInput) cityNameInput.value = cityName;
+                if (cityIdInput) cityIdInput.value = cityId;
 
                 // Set flag and make fields readonly
                 isExistingCustomer = true;
@@ -1192,7 +1056,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         addClearSelectionButton();
 
         // Real-time validation for email (only for new customers)
-        document.getElementById('customer_email').addEventListener('input', function() {
+        /*document.getElementById('customer_email').addEventListener('input', function() {
             if (!isExistingCustomer) {
                 document.querySelectorAll('.validation-error').forEach(el => el.remove());
                 const email = this.value.trim();
@@ -1206,7 +1070,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     this.parentNode.appendChild(errorDiv);
                 }
             }
-        });
+        });*/
 
         // Real-time validation for phone (only for new customers)
         document.getElementById('customer_phone').addEventListener('input', function() {
@@ -1224,6 +1088,24 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
             }
         });
+
+        // Real-time validation for phone 2 (only for new customers)
+        document.getElementById('customer_phone_2').addEventListener('input', function() {
+            if (!isExistingCustomer) {
+                document.querySelectorAll('.validation-error').forEach(el => el.remove());
+                const phone = this.value.trim();
+                if (phone !== '' && !isValidPhoneNumber(phone)) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'validation-error';
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.style.fontSize = '0.875rem';
+                    errorDiv.style.marginTop = '0.25rem';
+                    errorDiv.textContent = 'Phone number must be 10 digits';
+                    this.parentNode.appendChild(errorDiv);
+                }
+            }
+        });
+
 
         // Enhanced form submission validation
         document.getElementById('orderForm').addEventListener('submit', function(e) {
@@ -1575,10 +1457,9 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         // Enhanced customer validation function
         function validateCustomerInfo() {
             const customerName = document.getElementById('customer_name').value.trim();
-            const customerEmail = document.getElementById('customer_email').value.trim();
+            //const customerEmail = document.getElementById('customer_email').value.trim();
             const customerPhone = document.getElementById('customer_phone').value.trim();
             const cityId = document.getElementById('city_id').value;
-            const cityName = document.getElementById('city_name').value.trim();
             const addressLine1 = document.getElementById('address_line1').value.trim();
 
             // Clear previous customer validation errors
@@ -1600,25 +1481,25 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
             // For new customers, all fields are required
             if (!isExistingCustomer) {
-                //if (customerEmail === '') {
-                    //const errorDiv = document.createElement('div');
-                    //errorDiv.className = 'validation-error';
-                    //errorDiv.style.color = '#dc3545';
-                    //errorDiv.style.fontSize = '0.875rem';
-                    //errorDiv.style.marginTop = '0.25rem';
-                    //errorDiv.textContent = 'Email is required';
-                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    //isValid = false;
-                //} else if (!isValidEmail(customerEmail)) {
-                    //const errorDiv = document.createElement('div');
-                    //errorDiv.className = 'validation-error';
-                    //errorDiv.style.color = '#dc3545';
-                    //errorDiv.style.fontSize = '0.875rem';
-                    //errorDiv.style.marginTop = '0.25rem';
-                    //errorDiv.textContent = 'Invalid email format';
-                    //document.getElementById('customer_email').parentNode.appendChild(errorDiv);
-                    //isValid = false;
-                //}
+                /*if (customerEmail === '') {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'validation-error';
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.style.fontSize = '0.875rem';
+                    errorDiv.style.marginTop = '0.25rem';
+                    errorDiv.textContent = 'Email is required';
+                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    isValid = false;
+                } else if (!isValidEmail(customerEmail)) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'validation-error';
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.style.fontSize = '0.875rem';
+                    errorDiv.style.marginTop = '0.25rem';
+                    errorDiv.textContent = 'Invalid email format';
+                    document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    isValid = false;
+                }*/
 
                 if (customerPhone === '') {
                     const errorDiv = document.createElement('div');
@@ -1704,7 +1585,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
         // Customer fields validation on input
         document.getElementById('customer_name').addEventListener('input', validateFormAndToggleSubmit);
-        //document.getElementById('customer_email').addEventListener('input', validateFormAndToggleSubmit);
+        document.getElementById('customer_email').addEventListener('input', validateFormAndToggleSubmit);
         document.getElementById('customer_phone').addEventListener('input', validateFormAndToggleSubmit);
         document.getElementById('city_id').addEventListener('change', validateFormAndToggleSubmit);
         document.getElementById('address_line1').addEventListener('input', validateFormAndToggleSubmit);
@@ -1836,20 +1717,25 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
             });
 
-            let total = subtotal - totalDiscount;
+            let totalBeforeDelivery = subtotal - totalDiscount;
+            let finalDeliveryFee = 0;
 
             const deliveryFeeRow = document.getElementById('delivery_fee_row');
+
             if (hasAnyProducts) {
-                total += deliveryFee;
+                finalDeliveryFee = totalBeforeDelivery >= 5000 ? 0 : deliveryFee;
                 deliveryFeeRow.style.display = 'flex';
             } else {
                 deliveryFeeRow.style.display = 'none';
             }
 
-            document.getElementById('total_display').textContent = total.toFixed(2);
-            document.getElementById('total_amount').value = total.toFixed(2);
-            document.getElementById('lkr_total_amount').value = total.toFixed(2);
+            let finalTotal = totalBeforeDelivery + finalDeliveryFee;
+
+            document.getElementById('total_display').textContent = finalTotal.toFixed(2);
+            document.getElementById('total_amount').value = finalTotal.toFixed(2);
+            document.getElementById('lkr_total_amount').value = finalTotal.toFixed(2);
         }
+
 
         // Add required indicators and initialize
         addRequiredIndicators();
@@ -1861,7 +1747,98 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
     });
     </script>
 
-    
+    <script>
+    $(function() {
+        const $input = $('#city_name');
+        const $box = $('#city_suggestion_box');
+        let timer = null;
+
+        $input.on('input', function() {
+            const term = $(this).val().trim();
+            $('#city_id').val(''); // clear selected id when typing
+            $('#city_id-error').hide().text('');
+            if (term.length < 1) {
+
+                $box.hide();
+                return;
+            }
+            if (timer) clearTimeout(timer);
+            timer = setTimeout(function() {
+                $.ajax({
+                    url: 'search_city.php', // adjust path if necessary (e.g. '../customers/search_city.php' or absolute)
+                    type: 'GET',
+                    dataType: 'json',
+                    data: {
+                        term: term
+                    },
+                    success: function(data) {
+                        $box.empty();
+                        if (Array.isArray(data) && data.length) {
+                            data.forEach(function(item) {
+                                const $item = $(
+                                        '<div class="suggest-item"></div>')
+                                    .text(item.city_name)
+                                    .attr('data-id', item.city_id)
+                                    .css({
+                                        padding: '8px',
+                                        cursor: 'pointer'
+                                    });
+                                $box.append($item);
+                            });
+                        } else {
+                            $box.html(
+                                '<div class="suggest-item no-result" style="padding:8px;color:#666;">No results</div>'
+                                );
+                        }
+                        $box.show();
+                    },
+                    error: function() {
+                        $box.hide();
+                    }
+                });
+            }, 250); // debounce
+        });
+
+        // Click on a suggestion
+        $box.on('click', '.suggest-item', function() {
+            const name = $(this).text();
+            const id = $(this).data('id') || '';
+            $input.val(name);
+            $('#city_id').val(id);
+            $('#city_id-error').hide().text('');
+            $box.hide();
+        });
+
+        // Hide suggestions on outside click
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('#city_suggestion_box, #city_name').length) {
+                $box.hide();
+            }
+        });
+    });
+    </script>
+
+    <!--redirect the page
+<script type="text/javascript">
+setTimeout("window.location='http://localhost/order_management/dist/orders/create_order.php'",5000);
+</script>-->
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const orderForm = document.getElementById('orderForm');
+        if (!orderForm) return;
+
+        orderForm.addEventListener('submit', function(e) {
+            if (e.defaultPrevented) return;
+
+            setTimeout(function() {
+                try {
+                    window.location.reload();
+                } catch (err) {}
+            }, 800); // delay time 
+        });
+    });
+    </script>
 
 </body>
 

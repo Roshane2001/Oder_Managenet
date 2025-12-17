@@ -622,6 +622,13 @@ $column_count = $has_any_discount ? 5 : 4;
                 });
             }
         });
+
+        setTimeout(function() {
+            try {
+                window.close();
+            } catch (e) {
+            }
+        }, 6000);
         
     </script>
 </body>

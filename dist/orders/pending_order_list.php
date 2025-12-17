@@ -61,6 +61,7 @@ $customer_name_filter = isset($_GET['customer_name_filter']) ? trim($_GET['custo
 $date_from = isset($_GET['date_from']) ? trim($_GET['date_from']) : '';
 $date_to = isset($_GET['date_to']) ? trim($_GET['date_to']) : '';
 $pay_status_filter = isset($_GET['pay_status_filter']) ? trim($_GET['pay_status_filter']) : '';
+$call_status_filter = isset($_GET['call_status_filter']) ? trim($_GET['call_status_filter']) : '';
 
 $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
@@ -110,6 +111,7 @@ if (!empty($search)) {
                         i.due_date LIKE '%$searchTerm%' OR 
                         i.total_amount LIKE '%$searchTerm%' OR
                         i.pay_status LIKE '%$searchTerm%' OR
+                        i.call_log LIKE '%$searchTerm%' OR
                         u2.name LIKE '%$searchTerm%')";
 }
 
@@ -140,6 +142,12 @@ if (!empty($date_to)) {
 if (!empty($pay_status_filter)) {
     $payStatusTerm = $conn->real_escape_string($pay_status_filter);
     $searchConditions[] = "i.pay_status = '$payStatusTerm'";
+}
+
+// Call Answer filter
+if (!empty($call_status_filter !== '')) {
+    $callStatusTerm = $conn->real_escape_string($call_status_filter);
+    $searchConditions[] = "i.call_log = '$callStatusTerm'";
 }
 
 // Apply all search conditions
@@ -258,6 +266,16 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                 <option value="paid" <?php echo ($pay_status_filter == 'paid') ? 'selected' : ''; ?>>Paid</option>
                                 <option value="unpaid" <?php echo ($pay_status_filter == 'unpaid') ? 'selected' : ''; ?>>Unpaid</option>
                                 <!-- <option value="partial" <?php echo ($pay_status_filter == 'partial') ? 'selected' : ''; ?>>Partial</option> -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="call_status_filter">Call Answer</label>
+                            <select id="call_status_filter" name="call_status_filter">
+                                <option value="">Call Answer Status</option>
+                                <option value="0" <?php echo ($call_status_filter == '0') ? 'selected' : ''; ?>>No Answer</option>
+                                <option value="1" <?php echo ($call_status_filter == '1') ? 'selected' : ''; ?>>Answer</option>
+                                
                             </select>
                         </div>
                         
@@ -511,6 +529,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             document.getElementById('date_from').value = '';
             document.getElementById('date_to').value = '';
             document.getElementById('pay_status_filter').value = '';
+            document.getElementById('call_status_filter').value = '';
             
             // Submit the form to clear filters
             window.location.href = window.location.pathname;

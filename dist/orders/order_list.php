@@ -99,7 +99,8 @@ $sql = "SELECT i.*, c.name as customer_name,
                u1.name as paid_by_name,
                u2.name as user_name,
                i.slip as payment_slip, i.pay_status as order_pay_status,
-               i.created_at as order_created_at
+               i.created_at as order_created_at,
+               i.updated_at as order_updated_at /*updated time new*/
         FROM order_header i 
         LEFT JOIN customers c ON i.customer_id = c.customer_id
         LEFT JOIN payments p ON i.order_id = p.order_id
@@ -463,7 +464,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                         <thead>
                             <tr>
                                 <th>Order ID</th>
-                                <th>Created Time</th>
+                                <th>Updated Time</th>
                                 <th>Customer Name</th>
                                 <th>Total Amount</th>
                                 <th>Status</th>
@@ -488,8 +489,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                         <!-- NEW: Created Time Column -->
                                         <td class="created-time">
                                             <?php
-                                            if (isset($row['order_created_at']) && !empty($row['order_created_at'])) {
-                                                $createdAt = new DateTime($row['order_created_at']);
+                                            if (isset($row['order_updated_at']) && !empty($row['order_updated_at'])) {
+                                                $createdAt = new DateTime($row['order_updated_at']);
                                                 echo '<span class="created-date">' . $createdAt->format('Y-m-d') . '</span>';
                                                 echo '<span class="created-time-only">' . $createdAt->format('H:i:s') . '</span>';
                                             } else {
