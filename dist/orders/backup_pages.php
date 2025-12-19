@@ -106,6 +106,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $customer_name = trim($_POST['customer_name']);
         $customer_email = trim($_POST['customer_email'] ?? '');
         $customer_phone = trim($_POST['customer_phone'] ?? '');
+        $customer_phone_2 = trim($_POST['customer_phone_2'] ?? '');
         
         // Additional customer validation (optional but recommended)
         if (!empty($customer_email) && !filter_var($customer_email, FILTER_VALIDATE_EMAIL)) {
@@ -115,6 +116,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if (!empty($customer_phone) && !preg_match('/^[0-9+\-\s()]+$/', $customer_phone)) {
             throw new Exception("Invalid phone number format.");
         }
+
+        
 
         // Check if products are added
         if (empty($_POST['order_product'])) {
@@ -182,6 +185,70 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
             $customer_id = $conn->insert_id;
         }
+       $customer_id = 0;
+
+       // If email is provided, check if a customer with this email already exists
+       if (!empty($customer_email)) {
+           $checkCustomerSql = "SELECT customer_id, city_id FROM customers WHERE email = ?";
+           $stmt = $conn->prepare($checkCustomerSql);
+           $stmt->bind_param("s", $customer_email);
+           $stmt->execute();
+           $result = $stmt->get_result();
+
+           if ($result->num_rows > 0) {
+               // Customer with this email exists, use their ID and update their info
+               $customer = $result->fetch_assoc();
+               $customer_id = $customer['customer_id'];
+
+               // If city_id is not provided in POST but exists in customer record, use existing
+               if (empty($city_id) && !empty($customer['city_id'])) {
+                   $city_id = $customer['city_id'];
+               }
+
+               // Update existing customer information
+               $updateCustomerSql = "UPDATE customers SET name = ?, phone = ?, address_line1 = ?, address_line2 = ?, city_id = ?, status = 'Active' WHERE customer_id = ?";
+               $stmt = $conn->prepare($updateCustomerSql);
+               $stmt->bind_param("ssssii", $customer_name, $customer_phone, $address_line1, $address_line2, $city_id, $customer_id);
+               $stmt->execute();
+           }
+       }
+
+       // If no customer was found by email (or no email was provided), create a new one
+       if ($customer_id === 0) {
+           // Check if another customer already has this email (should not happen if logic is correct, but as a safeguard)
+           if (!empty($customer_email)) {
+               $checkDuplicateEmailSql = "SELECT customer_id FROM customers WHERE email = ?";
+               $stmt = $conn->prepare($checkDuplicateEmailSql);
+               $stmt->bind_param("s", $customer_email);
+               $stmt->execute();
+               if ($stmt->get_result()->num_rows > 0) {
+                   throw new Exception("The email '{$customer_email}' is already in use by another customer.");
+               }
+           }
+
+           // Check for duplicate phone numbers before creating a new customer
+           if (!empty($customer_phone)) {
+               $phoneCheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE phone = ? OR phone2 = ?");
+               $phoneCheckStmt->bind_param("ss", $customer_phone, $customer_phone);
+               $phoneCheckStmt->execute();
+               if ($phoneCheckStmt->get_result()->num_rows > 0) {
+                   throw new Exception("The primary phone number '{$customer_phone}' is already in use.");
+               }
+           }
+           if (!empty($customer_phone_2)) {
+               $phone2CheckStmt = $conn->prepare("SELECT customer_id FROM customers WHERE phone = ? OR phone2 = ?");
+               $phone2CheckStmt->bind_param("ss", $customer_phone_2, $customer_phone_2);
+               $phone2CheckStmt->execute();
+               if ($phone2CheckStmt->get_result()->num_rows > 0) {
+                   throw new Exception("The secondary phone number '{$customer_phone_2}' is already in use.");
+               }
+           }
+           $insertCustomerSql = "INSERT INTO customers (name, email, phone, phone2, address_line1, address_line2, city_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')";
+           $stmt = $conn->prepare($insertCustomerSql);
+           $stmt->bind_param("ssssssi", $customer_name, $customer_email, $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id);
+           $stmt->execute();
+           $customer_id = $conn->insert_id;
+       }
 
         // ADDITIONAL CHECK: If city_id is still null, try to get it from the customer record again
         if (empty($city_id) && !empty($customer_id)) {

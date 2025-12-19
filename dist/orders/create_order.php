@@ -301,7 +301,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
             <!-- [ Main Content ] start -->
             <div class="order-container">
-                <form method="post" action="process_order.php" id="orderForm" target="_blank">
+                <form method="post" action="process_order.php" id="orderForm" > <!--target="_blank"-->
                     <!-- Order Details Section -->
                     <div class="order-details-section">
                         <div class="order-details-grid">
@@ -361,13 +361,15 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                                 <div class="form-group">
                                     <label class="form-label">Phone</label>
                                     <input type="text" class="form-control" name="customer_phone" id="customer_phone"
-                                        placeholder="(07) xxxx xxxx">
+                                        placeholder="(07) xxxx xxxx"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                 </div>
                                 <!--mobile no 2-->
                                 <div class="form-group">
                                     <label class="form-label">Phone 2</label>
                                     <input type="text" class="form-control" name="customer_phone_2"
-                                        id="customer_phone_2" placeholder="(07) xxxx xxxx">
+                                        id="customer_phone_2" placeholder="(07) xxxx xxxx"
+                                        oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                 </div>
 
                                 <!--<div class="form-group">
@@ -696,6 +698,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             const phoneRegex = /^\d{10}$/;
             return phoneRegex.test(phone);
         }
+        
 
         // Function to toggle field editability based on customer type
         function toggleCustomerFields(readonly = false) {
@@ -735,6 +738,9 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             document.getElementById('address_line1').value = '';
             document.getElementById('address_line2').value = '';
 
+            // Clear any phone validation errors
+            document.querySelector('.customer_phone-validation-error')?.remove();
+            document.querySelector('.customer_phone_2-validation-error')?.remove();
             // Clear any validation errors
             document.querySelectorAll('.validation-error').forEach(el => el.remove());
 
@@ -742,6 +748,74 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             isExistingCustomer = false;
             toggleCustomerFields(false);
         }
+
+        // Function to check for duplicate phone via AJAX
+        function checkDuplicatePhone(phone, fieldId) {
+            const phoneField = document.getElementById(fieldId);
+            let errorDiv = phoneField.parentNode.querySelector(`.${fieldId}-validation-error`);
+
+            // Create error div if it doesn't exist
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = `validation-error ${fieldId}-validation-error`; // Specific class for phone errors
+                errorDiv.style.color = '#dc3545';
+                errorDiv.style.fontSize = '0.875rem';
+                errorDiv.style.marginTop = '0.25rem';
+                phoneField.parentNode.appendChild(errorDiv);
+            }
+
+            if (phone === '') return; // Don't check empty phone
+
+            fetch(`check_phone.php?phone=${encodeURIComponent(phone)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        errorDiv.textContent = 'Phone no already used';
+                        errorDiv.style.display = 'block';
+                        phoneField.classList.add('is-invalid');
+                    } else {
+                        errorDiv.style.display = 'none';
+                        phoneField.classList.remove('is-invalid');
+                    }
+                })
+                .catch(error => console.error('Error checking phone:', error));
+        }
+
+        // Function to check for duplicate email via AJAX
+        function checkDuplicateEmail(email) {
+            const emailField = document.getElementById('customer_email');
+            let errorDiv = emailField.parentNode.querySelector('.email-validation-error');
+
+            // Create error div if it doesn't exist
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.className = 'validation-error email-validation-error'; // Added specific class
+                errorDiv.style.color = '#dc3545';
+                errorDiv.style.fontSize = '0.875rem';
+                errorDiv.style.marginTop = '0.25rem';
+                emailField.parentNode.appendChild(errorDiv);
+            }
+
+            if (email === '') return; // Don't check empty email
+
+            fetch(`check_email.php?email=${encodeURIComponent(email)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        errorDiv.textContent = 'This email address is already in use.';
+                        errorDiv.style.display = 'block';
+                        emailField.classList.add('is-invalid');
+                    } else {
+                        errorDiv.style.display = 'none';
+                        emailField.classList.remove('is-invalid');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error checking email:', error);
+                    // Optionally show a generic error
+                });
+        }
+
 
         // Enhanced customer information validation
         function validateCustomerInfo() {
@@ -767,6 +841,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Customer name is required';
                     document.getElementById('customer_name').parentNode.appendChild(errorDiv);
+                    errorDiv.textContent = 'Invalid email format.';
+                    document.getElementById('customer_email').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 }
 
@@ -800,6 +876,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Phone number is required';
                     document.getElementById('customer_phone').parentNode.appendChild(errorDiv);
+                    document.getElementById('customer_phone').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 } else if (!isValidPhoneNumber(customerPhone)) {
                     const errorDiv = document.createElement('div');
@@ -809,6 +886,8 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Phone number must be 10 digits';
                     document.getElementById('customer_phone').parentNode.appendChild(errorDiv);
+                    errorDiv.textContent = 'Phone number must be 10 digits.';
+                    document.getElementById('customer_phone').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 }
 
@@ -821,6 +900,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'City is required';
                     document.getElementById('city_id').parentNode.appendChild(errorDiv);
+                    document.getElementById('city_id').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 }
 
@@ -833,6 +913,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Address Line 1 is required';
                     document.getElementById('address_line1').parentNode.appendChild(errorDiv);
+                    document.getElementById('address_line1').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 }
             } else {
@@ -845,6 +926,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Customer name is required';
                     document.getElementById('customer_name').parentNode.appendChild(errorDiv);
+                    document.getElementById('customer_name').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 }
             }
@@ -1011,8 +1093,6 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     'data-email');
                 document.getElementById('customer_phone').value = row.getAttribute(
                     'data-phone');
-                document.getElementById('customer_phone2').value = row.getAttribute(
-                    'data-phone2');
                 document.getElementById('address_line1').value = row.getAttribute(
                     'data-address-line1');
                 document.getElementById('address_line2').value = row.getAttribute(
@@ -1032,6 +1112,10 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
 
                 // Clear any existing validation errors
                 document.querySelectorAll('.validation-error').forEach(el => el.remove());
+
+                // Specifically clear the email validation state
+                document.getElementById('customer_email').classList.remove('is-invalid');
+                document.querySelector('.email-validation-error')?.remove();
 
                 customerModal.style.display = "none";
                 alert('Customer selected: ' + row.getAttribute('data-name'));
@@ -1056,21 +1140,32 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
         addClearSelectionButton();
 
         // Real-time validation for email (only for new customers)
-        /*document.getElementById('customer_email').addEventListener('input', function() {
+        document.getElementById('customer_email').addEventListener('blur', function() {
             if (!isExistingCustomer) {
-                document.querySelectorAll('.validation-error').forEach(el => el.remove());
                 const email = this.value.trim();
-                if (email !== '' && !isValidEmail(email)) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'validation-error';
-                    errorDiv.style.color = '#dc3545';
-                    errorDiv.style.fontSize = '0.875rem';
-                    errorDiv.style.marginTop = '0.25rem';
-                    errorDiv.textContent = 'Invalid email format';
-                    this.parentNode.appendChild(errorDiv);
+                checkDuplicateEmail(email);
+            }
+        });
+
+        // Real-time validation for phone duplicate check (only for new customers)
+        document.getElementById('customer_phone').addEventListener('blur', function() {
+            if (!isExistingCustomer) {
+                const phone = this.value.trim();
+                if (isValidPhoneNumber(phone)) {
+                    checkDuplicatePhone(phone, 'customer_phone');
                 }
             }
-        });*/
+        });
+
+        // Real-time validation for phone 2 duplicate check (only for new customers)
+        document.getElementById('customer_phone_2').addEventListener('blur', function() {
+            if (!isExistingCustomer) {
+                const phone2 = this.value.trim();
+                if (isValidPhoneNumber(phone2)) {
+                    checkDuplicatePhone(phone2, 'customer_phone_2');
+                }
+            }
+        });
 
         // Real-time validation for phone (only for new customers)
         document.getElementById('customer_phone').addEventListener('input', function() {
@@ -1085,6 +1180,27 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Phone number must be 10 digits';
                     this.parentNode.appendChild(errorDiv);
+                } else {
+                    // Clear format error if valid
+                    this.parentNode.querySelectorAll('.validation-error').forEach(el => el.remove());
+                }
+            }
+        });
+        document.getElementById('customer_phone_2').addEventListener('input', function() {
+            if (!isExistingCustomer) {
+                document.querySelectorAll('.validation-error').forEach(el => el.remove());
+                const phone = this.value.trim();
+                if (phone !== '' && !isValidPhoneNumber(phone)) {
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'validation-error';
+                    errorDiv.style.color = '#dc3545';
+                    errorDiv.style.fontSize = '0.875rem';
+                    errorDiv.style.marginTop = '0.25rem';
+                    errorDiv.textContent = 'Phone number must be 10 digits';
+                    this.parentNode.appendChild(errorDiv);
+                } else {
+                    // Clear format error if valid
+                    this.parentNode.querySelectorAll('.validation-error').forEach(el => el.remove());
                 }
             }
         });
@@ -1489,6 +1605,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                     errorDiv.style.marginTop = '0.25rem';
                     errorDiv.textContent = 'Email is required';
                     document.getElementById('customer_email').parentNode.appendChild(errorDiv);
+                    document.getElementById('customer_email').closest('.form-group').appendChild(errorDiv);
                     isValid = false;
                 } else if (!isValidEmail(customerEmail)) {
                     const errorDiv = document.createElement('div');
@@ -1717,20 +1834,27 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
                 }
             });
 
-            let totalBeforeDelivery = subtotal - totalDiscount;
+            const totalBeforeDelivery = subtotal - totalDiscount;
             let finalDeliveryFee = 0;
 
             const deliveryFeeRow = document.getElementById('delivery_fee_row');
+            const deliveryFeeDisplay = document.getElementById('delivery_fee_display');
+            const deliveryFeeInput = document.getElementById('delivery_fee');
 
             if (hasAnyProducts) {
-                finalDeliveryFee = totalBeforeDelivery >= 5000 ? 0 : deliveryFee;
+                // If total is 5000 or more, delivery is free
+                finalDeliveryFee = (totalBeforeDelivery >= 5000) ? 0.00 : deliveryFee;
                 deliveryFeeRow.style.display = 'flex';
             } else {
                 deliveryFeeRow.style.display = 'none';
             }
 
-            let finalTotal = totalBeforeDelivery + finalDeliveryFee;
+            // Update the delivery fee display and hidden input
+            deliveryFeeDisplay.textContent = finalDeliveryFee.toFixed(2);
+            deliveryFeeInput.value = finalDeliveryFee.toFixed(2);
 
+            // Calculate the final total
+            const finalTotal = totalBeforeDelivery + finalDeliveryFee;
             document.getElementById('total_display').textContent = finalTotal.toFixed(2);
             document.getElementById('total_amount').value = finalTotal.toFixed(2);
             document.getElementById('lkr_total_amount').value = finalTotal.toFixed(2);
@@ -1824,20 +1948,8 @@ setTimeout("window.location='http://localhost/order_management/dist/orders/creat
 </script>-->
 
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const orderForm = document.getElementById('orderForm');
-        if (!orderForm) return;
-
-        orderForm.addEventListener('submit', function(e) {
-            if (e.defaultPrevented) return;
-
-            setTimeout(function() {
-                try {
-                    window.location.reload();
-                } catch (err) {}
-            }, 800); // delay time 
-        });
-    });
+    // Removed problematic auto-reload script.
+    // Redirection is correctly handled by process_order.php after successful submission.
     </script>
 
 </body>

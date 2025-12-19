@@ -266,15 +266,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 'description' => $description
             ];
 
-            // total_amount exceeds 5000, set delivery fee to 0
-        
-        }
+    }
 
-        if ($total_amount > 5000) {
-            $delivery_fee = 0.00;
-            $total_amount = $subtotal_before_discounts - $total_discount; // recalc without delivery fee
-        }
-        
+    // Correctly calculate total before delivery fee
+    $total_before_delivery = $subtotal_before_discounts - $total_discount;
+    $delivery_fee = ($total_before_delivery >= 5000) ? 0.00 : floatval($_POST['delivery_fee'] ?? 0.00);
+
         // Final total calculation with delivery fee
         $total_amount = $subtotal_before_discounts - $total_discount + $delivery_fee;
 

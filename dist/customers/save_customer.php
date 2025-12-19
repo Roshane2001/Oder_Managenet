@@ -146,7 +146,7 @@ if (!empty($phone)) {
 
 
     // Check for duplicate phone
-    // Check duplicate for phone2 (against phone & phone2)
+    
 if (!empty($phone2)) {
     $stmt = $conn->prepare("
         SELECT customer_id 
