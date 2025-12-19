@@ -178,14 +178,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                  status = 'Active' 
                                  WHERE customer_id = ?";
             $stmt = $conn->prepare($updateCustomerSql);
-            $stmt->bind_param("sssii", $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id, $customer_id);
+            $stmt->bind_param("ssssii", $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id, $customer_id);
             $stmt->execute();
         } else {
             // Insert new customer with correct column names
             $insertCustomerSql = "INSERT INTO customers (name, email, phone, phone_2, address_line1, address_line2, city_id, status) 
                                  VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')";
             $stmt = $conn->prepare($insertCustomerSql);
-            $stmt->bind_param("sssssi", $customer_name, $customer_email, $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id);
+            $stmt->bind_param("ssssssi", $customer_name, $customer_email, $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id);
             $stmt->execute();
             $customer_id = $conn->insert_id;
         }
@@ -281,16 +281,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $insertOrderSql = "INSERT INTO order_header (
             customer_id, user_id, issue_date, due_date, 
             subtotal, discount, total_amount, delivery_fee,
-            mobile, full_name, city_id, address_line1, address_line2,
+            mobile, mobile2, full_name, city_id, address_line1, address_line2,
             notes, currency, status, pay_status, pay_date, created_by
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         
         $stmt = $conn->prepare($insertOrderSql);
         $stmt->bind_param(
-            "iissddddssisssssssi", 
+            "iissddddsssisssssssi", 
             $customer_id, $user_id, $order_date, $due_date, 
-            $subtotal_before_discounts, $total_discount, $total_amount, $delivery_fee, 
-            $customer_phone, $customer_name, $city_id, $address_line1, $address_line2,
+            $subtotal_before_discounts, $total_discount, $total_amount, $delivery_fee,
+            $customer_phone, $customer_phone_2, $customer_name, $city_id, $address_line1, $address_line2,
             $notes, $currency, $status, $pay_status, $pay_date, $user_id
         );
         $stmt->execute();
