@@ -822,7 +822,7 @@ include($_SERVER['DOCUMENT_ROOT'] . '/order_management/dist/include/sidebar.php'
             const customerName = document.getElementById('customer_name').value.trim();
             //const customerEmail = document.getElementById('customer_email').value.trim();
             const customerPhone = document.getElementById('customer_phone').value.trim();
-            const cityId = document.getElementById('city_id').value;
+            const cityId = document.getElementById('city_id').value.trim();
             const addressLine1 = document.getElementById('address_line1').value.trim();
 
             // Clear previous error messages

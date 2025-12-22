@@ -171,7 +171,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             // Update existing customer information
             $updateCustomerSql = "UPDATE customers SET 
                                  phone = ?, 
-                                 phone_2 = ?,
+                                 phone2 = ?,
                                  address_line1 = ?, 
                                  address_line2 = ?, 
                                  city_id = ?, 
@@ -182,7 +182,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $stmt->execute();
         } else {
             // Insert new customer with correct column names
-            $insertCustomerSql = "INSERT INTO customers (name, email, phone, phone_2, address_line1, address_line2, city_id, status) 
+            $insertCustomerSql = "INSERT INTO customers (name, email, phone, phone2, address_line1, address_line2, city_id, status) 
                                  VALUES (?, ?, ?, ?, ?, ?, ?, 'Active')";
             $stmt = $conn->prepare($insertCustomerSql);
             $stmt->bind_param("ssssssi", $customer_name, $customer_email, $customer_phone, $customer_phone_2, $address_line1, $address_line2, $city_id);
